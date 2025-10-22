@@ -243,7 +243,7 @@ const KanbanBoard = ({ projectId }) => {
     }
 
     return (
-        <DndProvider backend={HTML5Backend}>
+        // <DndProvider backend={HTML5Backend}>
             <div className="h-full">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 h-full">
                     {columns.map((column) => (
@@ -257,7 +257,7 @@ const KanbanBoard = ({ projectId }) => {
                     ))}
                 </div>
             </div>
-        </DndProvider>
+        // </DndProvider>
     );
 };
 
