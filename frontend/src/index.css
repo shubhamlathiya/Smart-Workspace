@@ -1,0 +1,301 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .glass {
+    background-color: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 1rem; /* optional */
+  }
+}
+/* Custom CSS Variables for Glassmorphism and Neumorphism */
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  --glass-backdrop: blur(8px);
+
+  --neumorphism-light: #e0e5ec;
+  --neumorphism-dark: #a3b1c6;
+  --neumorphism-shadow-light: 20px 20px 60px #bebebe;
+  --neumorphism-shadow-dark: -20px -20px 60px #ffffff;
+
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+/* Glass-style SweetAlert */
+.swal2-popup.glass-popup {
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+.swal2-confirm.glass-confirm, .swal2-cancel.glass-cancel {
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  padding: 8px 20px !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.swal2-confirm.glass-confirm:hover {
+  filter: brightness(1.2);
+}
+
+.swal2-cancel.glass-cancel:hover {
+  filter: brightness(1.1);
+}
+
+/* Dark mode variables */
+.dark {
+  --glass-bg: rgba(0, 0, 0, 0.2);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+
+  --neumorphism-light: #2a2a2a;
+  --neumorphism-dark: #1a1a1a;
+  --neumorphism-shadow-light: 20px 20px 60px #1e1e1e;
+  --neumorphism-shadow-dark: -20px -20px 60px #2e2e2e;
+}
+
+/* Base styles */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  transition: all 0.3s ease;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+  monospace;
+}
+
+/* Glassmorphism utility classes */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Glass-style Card */
+.glass-card {
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  transition: all 0.2s ease-in-out;
+}
+
+.glass-card:hover {
+  filter: brightness(1.05);
+}
+
+/*.glass-card {*/
+/*  @apply rounded-xl p-6;*/
+/*}*/
+
+.glass-button {
+  @apply rounded-lg px-4 py-2 font-medium transition-all duration-300 hover:scale-105;
+}
+
+/* Neumorphism utility classes */
+.neumorphic {
+  background: var(--neumorphism-light);
+  box-shadow: var(--neumorphism-shadow-light), var(--neumorphism-shadow-dark);
+}
+
+.neumorphic-inset {
+  background: var(--neumorphism-light);
+  box-shadow: inset var(--neumorphism-shadow-light), inset var(--neumorphism-shadow-dark);
+}
+
+.neumorphic-button {
+  @apply neumorphic rounded-lg px-4 py-2 font-medium transition-all duration-300 hover:scale-105 active:scale-95;
+}
+
+.neumorphic-card {
+  @apply neumorphic rounded-xl p-6;
+}
+
+/* Gradient backgrounds */
+.gradient-primary {
+  background: var(--gradient-primary);
+}
+
+.gradient-secondary {
+  background: var(--gradient-secondary);
+}
+
+.gradient-accent {
+  background: var(--gradient-accent);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Animation utilities */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.5s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Loading spinner */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Parallax container */
+.parallax-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.parallax-bg {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+  background-size: 20px 20px;
+  animation: parallaxMove 20s linear infinite;
+}
+
+@keyframes parallaxMove {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(-20px, -20px); }
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .glass-card {
+    @apply p-4;
+  }
+
+  .neumorphic-card {
+    @apply p-4;
+  }
+}
+
+/* Focus styles */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50;
+}
+
+/* Custom button variants */
+.btn-primary {
+  @apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus-ring;
+}
+
+.btn-secondary {
+  @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus-ring;
+}
+
+.btn-glass {
+  @apply glass-button text-white font-medium py-2 px-4 focus-ring;
+}
+
+.btn-neumorphic {
+  @apply neumorphic-button text-gray-700 font-medium py-2 px-4 focus-ring;
+}
