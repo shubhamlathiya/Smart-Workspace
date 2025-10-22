@@ -49,7 +49,7 @@ const ProjectsPage = () => {
                 showErrorAlert(
                     'error',
                     'Failed',
-                    'Unable to delete this project. Please try again.'
+                    `${error} Unable to delete this project. Please try again.`
                 );
             }
         }
@@ -107,13 +107,6 @@ const ProjectsPage = () => {
         });
     };
 
-    const calculateProgress = (project) => {
-        console.log(project);
-        console.log(project.tasks);
-        if (!project.tasks || project.tasks.length === 0) return 0;
-        const completedTasks = project.tasks.filter(task => task.status === 'completed').length;
-        return Math.round((completedTasks / project.tasks.length) * 100);
-    };
 
     return (
         <div className="space-y-6">
@@ -313,27 +306,6 @@ const ProjectsPage = () => {
 
                                 {/* Project Details */}
                                 <div className="p-4">
-                                    {/* Progress Bar */}
-                                    <div className="mb-4">
-                                        {(() => {
-                                            const progress = calculateProgress(project);
-                                            console.log(progress);
-                                            return (
-                                                <>
-                                                    <div className="flex justify-between text-sm text-white/70 mb-1">
-                                                        <span>Progress</span>
-                                                        <span>{progress}%</span>
-                                                    </div>
-                                                    <div className="w-full bg-white/10 rounded-full h-2">
-                                                        <div
-                                                            className="bg-gradient-to-r from-green-500 to-blue-600 h-2 rounded-full transition-all duration-300"
-                                                            style={{ width: `${progress}%` }}
-                                                        ></div>
-                                                    </div>
-                                                </>
-                                            );
-                                        })()}
-                                    </div>
 
                                     {/* Project Meta */}
                                     <div className="space-y-2 text-sm">
@@ -415,16 +387,7 @@ const ProjectsPage = () => {
                                     </div>
 
                                     <div className="flex items-center space-x-4">
-                                        {/* Progress */}
-                                        <div className="text-right min-w-20">
-                                            <div className="text-white font-semibold">{calculateProgress(project)}%</div>
-                                            <div className="w-full bg-white/10 rounded-full h-2 mt-1">
-                                                <div
-                                                    className="bg-gradient-to-r from-green-500 to-blue-600 h-2 rounded-full transition-all duration-300"
-                                                    style={{ width: `${calculateProgress(project)}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
+
 
                                         {/* Actions */}
                                         <div className="flex space-x-2">
