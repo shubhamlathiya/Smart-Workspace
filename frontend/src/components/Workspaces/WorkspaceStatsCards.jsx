@@ -1,8 +1,8 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Users, Home, UserCheck } from 'lucide-react'; // Choose suitable icons
+import {motion} from 'framer-motion';
+import {Users, Home, UserCheck} from 'lucide-react'; // Choose suitable icons
 
-const WorkspaceStatsCards = ({ userWorkspaces, ownedWorkspaces, memberWorkspaces }) => {
+const WorkspaceStatsCards = ({userWorkspaces, ownedWorkspaces, memberWorkspaces}) => {
     const cards = [
         {
             title: 'Total Workspaces',
@@ -26,9 +26,9 @@ const WorkspaceStatsCards = ({ userWorkspaces, ownedWorkspaces, memberWorkspaces
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+            initial={{opacity: 0, y: 20}}
+            animate={{opacity: 1, y: 0}}
+            transition={{duration: 0.5, delay: 0.1}}
             className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"
         >
             {cards.map((card, idx) => {
@@ -42,7 +42,7 @@ const WorkspaceStatsCards = ({ userWorkspaces, ownedWorkspaces, memberWorkspaces
                         <div
                             className={`w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-r ${card.color}`}
                         >
-                            <Icon className="w-6 h-6 text-white" />
+                            <Icon className="w-6 h-6 text-white"/>
                         </div>
                     </div>
                 );

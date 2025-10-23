@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { useAppDispatch, useAppSelector } from '../../hooks/redux';
+import React, {useState, useEffect} from 'react';
+import {motion} from 'framer-motion';
+import {useAppDispatch, useAppSelector} from '../../hooks/redux';
 import {getCurrentUser, updateUserProfile} from "../../features/auth/authSlice.jsx";
 
 const ProfilePage = () => {
     const dispatch = useAppDispatch();
-    const { user, isLoading, error } = useAppSelector((state) => state.auth);
+    const {user, isLoading, error} = useAppSelector((state) => state.auth);
 
     const [activeTab, setActiveTab] = useState('profile');
     const [isEditing, setIsEditing] = useState(false);
@@ -47,7 +47,7 @@ const ProfilePage = () => {
     }, [dispatch, user]);
 
     const handleProfileChange = (e) => {
-        const { name, value } = e.target;
+        const {name, value} = e.target;
         setProfileData(prev => ({
             ...prev,
             [name]: value
@@ -62,7 +62,7 @@ const ProfilePage = () => {
     };
 
     const handlePasswordChange = (e) => {
-        const { name, value } = e.target;
+        const {name, value} = e.target;
         setPasswordData(prev => ({
             ...prev,
             [name]: value
@@ -201,9 +201,9 @@ const ProfilePage = () => {
         <div className="space-y-6">
             {/* Header */}
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
+                initial={{opacity: 0, y: 20}}
+                animate={{opacity: 1, y: 0}}
+                transition={{duration: 0.5}}
             >
                 <h1 className="text-3xl font-bold text-white mb-2">Profile</h1>
                 <p className="text-white/70">Manage your account settings</p>
@@ -212,8 +212,8 @@ const ProfilePage = () => {
             {/* Success Message */}
             {successMessage && (
                 <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{opacity: 0, y: -10}}
+                    animate={{opacity: 1, y: 0}}
                     className="p-4 bg-green-500/20 border border-green-500 rounded-lg"
                 >
                     <p className="text-green-400 text-center">{successMessage}</p>
@@ -223,8 +223,8 @@ const ProfilePage = () => {
             {/* Error Message */}
             {error && (
                 <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{opacity: 0, y: -10}}
+                    animate={{opacity: 1, y: 0}}
                     className="p-4 bg-red-500/20 border border-red-500 rounded-lg"
                 >
                     <p className="text-red-400 text-center">{error}</p>
@@ -234,22 +234,24 @@ const ProfilePage = () => {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 {/* Sidebar */}
                 <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.5, delay: 0.1 }}
+                    initial={{opacity: 0, x: -20}}
+                    animate={{opacity: 1, x: 0}}
+                    transition={{duration: 0.5, delay: 0.1}}
                     className="lg:col-span-1"
                 >
                     <div className="glass-card p-6">
                         {/* User Info */}
                         <div className="text-center mb-6">
-                            <div className={`w-20 h-20 bg-gradient-to-r ${getAvatarColor(user.name)} rounded-full flex items-center justify-center mx-auto mb-4`}>
+                            <div
+                                className={`w-20 h-20 bg-gradient-to-r ${getAvatarColor(user.name)} rounded-full flex items-center justify-center mx-auto mb-4`}>
                 <span className="text-2xl font-bold text-white">
                   {getInitials(user.name)}
                 </span>
                             </div>
                             <h2 className="text-xl font-bold text-white mb-1">{user.name}</h2>
                             <p className="text-white/70 text-sm">{user.email}</p>
-                            <div className="mt-2 px-3 py-1 bg-blue-500/20 text-blue-400 text-xs rounded-full inline-block">
+                            <div
+                                className="mt-2 px-3 py-1 bg-blue-500/20 text-blue-400 text-xs rounded-full inline-block">
                                 {user.role || 'Member'}
                             </div>
                         </div>
@@ -292,9 +294,9 @@ const ProfilePage = () => {
 
                 {/* Main Content */}
                 <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
+                    initial={{opacity: 0, x: 20}}
+                    animate={{opacity: 1, x: 0}}
+                    transition={{duration: 0.5, delay: 0.2}}
                     className="lg:col-span-3"
                 >
                     {/* Profile Information Tab */}
@@ -550,7 +552,8 @@ const ProfilePage = () => {
                             <h3 className="text-xl font-bold text-white mb-6">Preferences</h3>
                             <div className="space-y-4">
                                 <p className="text-white/70">
-                                    Preferences management coming soon. You'll be able to customize your notification settings,
+                                    Preferences management coming soon. You'll be able to customize your notification
+                                    settings,
                                     language preferences, and other account settings here.
                                 </p>
                                 {/* Add preferences form elements here when ready */}

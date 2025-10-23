@@ -14,15 +14,12 @@ import {showConfirmAlert} from "../../utils/alerts.jsx";
 // --- Draggable Task ---
 const DraggableTask = ({task, index}) => {
     const [{isDragging}, drag] = useDrag(() => ({
-        type: 'task',
-        item: {id: task._id, index, status: task.status},
-        collect: (monitor) => ({
+        type: 'task', item: {id: task._id, index, status: task.status}, collect: (monitor) => ({
             isDragging: monitor.isDragging(),
         }),
     }), [task._id, task.status]);
 
-    return (
-        <motion.div
+    return (<motion.div
             ref={drag}
             initial={{opacity: 0, y: 20}}
             animate={{opacity: 1, y: 0}}
@@ -31,8 +28,7 @@ const DraggableTask = ({task, index}) => {
             className={`mb-3 cursor-pointer transition-opacity ${isDragging ? 'opacity-50' : 'opacity-100'}`}
         >
             <TaskCard task={task}/>
-        </motion.div>
-    );
+        </motion.div>);
 };
 
 // --- Task Card ---
@@ -70,8 +66,7 @@ const TaskCard = ({task}) => {
         return {text: taskDate.toLocaleDateString(), color: 'text-white/70'};
     };
 
-    return (
-        <div
+    return (<div
             className={`${getCardColor(task.status)} backdrop-blur-md p-4 border border-white/20 rounded-xl hover:border-white/30 transition-all duration-200`}>
             <div className="flex items-start justify-between mb-3">
                 <h4 className="font-medium text-white text-sm line-clamp-2 flex-1 mr-2">
@@ -83,65 +78,45 @@ const TaskCard = ({task}) => {
                 </span>
             </div>
 
-            {task.description && (
-                <p className="text-white/70 text-xs mb-3 line-clamp-2">{task.description}</p>
-            )}
+            {task.description && (<p className="text-white/70 text-xs mb-3 line-clamp-2">{task.description}</p>)}
 
-            {task.tags?.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-3">
-                    {task.tags.slice(0, 3).map((tag, idx) => (
-                        <span key={idx}
-                              className="bg-blue-400/20 text-blue-400 text-xs px-2 py-1 rounded border border-blue-400/30">
+            {task.tags?.length > 0 && (<div className="flex flex-wrap gap-1 mb-3">
+                    {task.tags.slice(0, 3).map((tag, idx) => (<span key={idx}
+                                                                    className="bg-blue-400/20 text-blue-400 text-xs px-2 py-1 rounded border border-blue-400/30">
                             {tag}
-                        </span>
-                    ))}
-                    {task.tags.length > 3 && (
-                        <span className="text-white/50 text-xs">+{task.tags.length - 3}</span>
-                    )}
-                </div>
-            )}
+                        </span>))}
+                    {task.tags.length > 3 && (<span className="text-white/50 text-xs">+{task.tags.length - 3}</span>)}
+                </div>)}
 
             <div className="flex items-center justify-between text-xs text-white/70">
                 <div className="flex items-center space-x-3">
-                    {task.comments?.length > 0 && (
-                        <div className="flex items-center space-x-1">
+                    {task.comments?.length > 0 && (<div className="flex items-center space-x-1">
                             <MessageCircle className="w-3 h-3 text-white/70"/>
                             <span>{task.comments.length}</span>
-                        </div>
-                    )}
-                    {task.dueDate && (
-                        <div className="flex items-center space-x-1">
+                        </div>)}
+                    {task.dueDate && (<div className="flex items-center space-x-1">
                             <Clock className="w-3 h-3 text-white/70"/>
                             <span className={formatDate(task.dueDate)?.color}>
                                 {formatDate(task.dueDate)?.text}
                             </span>
-                        </div>
-                    )}
+                        </div>)}
                 </div>
 
-                {task.assignedTo?.length > 0 && (
-                    <div className="flex items-center space-x-1">
+                {task.assignedTo?.length > 0 && (<div className="flex items-center space-x-1">
                         <User className="w-3 h-3 text-white/70"/>
                         <span>{task.assignedTo.length}</span>
-                    </div>
-                )}
+                    </div>)}
             </div>
-        </div>
-    );
+        </div>);
 };
 
 // --- Droppable Column ---
 const DroppableColumn = ({column, tasks, onDrop, onAddTask}) => {
-    const [{isOver}, drop] = useDrop(
-        () => ({
-            accept: 'task',
-            drop: (item) => onDrop(item, column.id),
-            collect: (monitor) => ({
-                isOver: monitor.isOver(),
-            }),
+    const [{isOver}, drop] = useDrop(() => ({
+        accept: 'task', drop: (item) => onDrop(item, column.id), collect: (monitor) => ({
+            isOver: monitor.isOver(),
         }),
-        [column.id, onDrop]
-    );
+    }), [column.id, onDrop]);
 
     const getColumnColor = (color) => {
         const colors = {
@@ -153,8 +128,7 @@ const DroppableColumn = ({column, tasks, onDrop, onAddTask}) => {
         return colors[color] || colors.gray;
     };
 
-    return (
-        <div className="flex flex-col flex-1">
+    return (<div className="flex flex-col flex-1">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-2">
                     <div className={`w-3 h-3 rounded-full bg-gradient-to-r ${getColumnColor(column.color)}`}/>
@@ -170,16 +144,10 @@ const DroppableColumn = ({column, tasks, onDrop, onAddTask}) => {
 
             <div
                 ref={drop}
-                className={`flex-1 min-h-96 p-3 rounded-lg transition-all duration-200 ${
-                    isOver
-                        ? 'bg-blue-500/10 border-2 border-blue-500/30 border-dashed'
-                        : 'bg-white/5 border border-white/10'
-                }`}
+                className={`flex-1 min-h-96 p-3 rounded-lg transition-all duration-200 ${isOver ? 'bg-blue-500/10 border-2 border-blue-500/30 border-dashed' : 'bg-white/5 border border-white/10'}`}
             >
                 <AnimatePresence>
-                    {tasks.map((task, index) => (
-                        <DraggableTask key={task._id} task={task} index={index}/>
-                    ))}
+                    {tasks.map((task, index) => (<DraggableTask key={task._id} task={task} index={index}/>))}
                 </AnimatePresence>
 
                 <motion.button
@@ -192,8 +160,7 @@ const DroppableColumn = ({column, tasks, onDrop, onAddTask}) => {
                     <span className="text-sm">Add Task</span>
                 </motion.button>
             </div>
-        </div>
-    );
+        </div>);
 };
 
 // --- Main Kanban Board ---
@@ -208,15 +175,11 @@ const KanbanBoard = ({projectId}) => {
         if (task.projectId === projectId) dispatch(updateTaskInList(task));
     });
 
-    const columns = useMemo(
-        () => [
-            {id: 'todo', title: 'To Do', color: 'gray'},
-            {id: 'in-progress', title: 'In Progress', color: 'blue'},
-            {id: 'review', title: 'Review', color: 'yellow'},
-            {id: 'completed', title: 'Completed', color: 'green'},
-        ],
-        []
-    );
+    const columns = useMemo(() => [{id: 'todo', title: 'To Do', color: 'gray'}, {
+        id: 'in-progress',
+        title: 'In Progress',
+        color: 'blue'
+    }, {id: 'review', title: 'Review', color: 'yellow'}, {id: 'completed', title: 'Completed', color: 'green'},], []);
 
     const handleDrop = async (item, newStatus) => {
         const {id: taskId, status: oldStatus} = item;
@@ -249,10 +212,7 @@ const KanbanBoard = ({projectId}) => {
 
         if (socketService) {
             socketService.emitTaskUpdate({
-                projectId,
-                taskId,
-                status: newStatus,
-                updatedBy: user.name,
+                projectId, taskId, status: newStatus, updatedBy: user.name,
             });
         }
 
@@ -260,26 +220,21 @@ const KanbanBoard = ({projectId}) => {
     };
 
     if (isLoading) {
-        return (
-            <div className="flex items-center justify-center h-96">
+        return (<div className="flex items-center justify-center h-96">
                 <LoadingSpinner size="large" text="Loading tasks..."/>
-            </div>
-        );
+            </div>);
     }
 
-    return (
-        // <DndProvider backend={HTML5Backend}>
+    return (// <DndProvider backend={HTML5Backend}>
         <div className="h-full">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 h-full">
-                {columns.map((column) => (
-                    <DroppableColumn
+                {columns.map((column) => (<DroppableColumn
                         key={column.id}
                         column={column}
                         tasks={kanbanColumns[column.id] || []}
                         onDrop={handleDrop}
                         onAddTask={() => dispatch(openModal('createTask'))}
-                    />
-                ))}
+                    />))}
             </div>
         </div>
         // </DndProvider>

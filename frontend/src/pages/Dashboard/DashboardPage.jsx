@@ -123,270 +123,270 @@ const DashboardPage = () => {
 
     if (isLoading) {
         return (<div className="flex items-center justify-center min-h-96">
-                <LoadingSpinner size="large" text="Loading dashboard..."/>
-            </div>);
+            <LoadingSpinner size="large" text="Loading dashboard..."/>
+        </div>);
     }
 
     const hasData = stats.totalWorkspaces > 0 || stats.totalProjects > 0 || stats.totalTasks > 0;
 
     return (<div className="space-y-6">
-            {/* Welcome section */}
-            <motion.div
-                initial={{opacity: 0, y: 20}}
-                animate={{opacity: 1, y: 0}}
-                transition={{duration: 0.5}}
+        {/* Welcome section */}
+        <motion.div
+            initial={{opacity: 0, y: 20}}
+            animate={{opacity: 1, y: 0}}
+            transition={{duration: 0.5}}
 
-            >
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold text-white mb-2">
-                            Welcome back, {user?.name}! 👋
-                        </h1>
-                        <p className="text-white/70">
-                            {hasData ? "Here's what's happening in your workspace today." : "Let's get started with your first workspace!"}
-                        </p>
-                    </div>
-                    {hasData && (<div className="mt-4 sm:mt-0">
+        >
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold text-white mb-2">
+                        Welcome back, {user?.name}! 👋
+                    </h1>
+                    <p className="text-white/70">
+                        {hasData ? "Here's what's happening in your workspace today." : "Let's get started with your first workspace!"}
+                    </p>
+                </div>
+                {hasData && (<div className="mt-4 sm:mt-0">
               <span className="text-sm text-white/50">
                 Last updated: {new Date().toLocaleTimeString()}
               </span>
-                        </div>)}
-                </div>
+                </div>)}
+            </div>
+        </motion.div>
+
+        {/* Stats cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <motion.div
+                initial={{opacity: 0, y: 20}}
+                animate={{opacity: 1, y: 0}}
+                transition={{duration: 0.5, delay: 0.1}}
+            >
+                <StatsCard
+                    title="Total Workspaces"
+                    value={stats.totalWorkspaces.toString()}
+                    icon="🏢"
+                    color="blue"
+                    description="Workspaces you own or belong to"
+                />
             </motion.div>
 
-            {/* Stats cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <motion.div
-                    initial={{opacity: 0, y: 20}}
-                    animate={{opacity: 1, y: 0}}
-                    transition={{duration: 0.5, delay: 0.1}}
-                >
-                    <StatsCard
-                        title="Total Workspaces"
-                        value={stats.totalWorkspaces.toString()}
-                        icon="🏢"
-                        color="blue"
-                        description="Workspaces you own or belong to"
-                    />
-                </motion.div>
+            <motion.div
+                initial={{opacity: 0, y: 20}}
+                animate={{opacity: 1, y: 0}}
+                transition={{duration: 0.5, delay: 0.2}}
+            >
+                <StatsCard
+                    title="Active Projects"
+                    value={stats.totalProjects.toString()}
+                    icon="📁"
+                    color="green"
+                    description="Projects you're involved in"
+                />
+            </motion.div>
 
-                <motion.div
-                    initial={{opacity: 0, y: 20}}
-                    animate={{opacity: 1, y: 0}}
-                    transition={{duration: 0.5, delay: 0.2}}
-                >
-                    <StatsCard
-                        title="Active Projects"
-                        value={stats.totalProjects.toString()}
-                        icon="📁"
-                        color="green"
-                        description="Projects you're involved in"
-                    />
-                </motion.div>
+            <motion.div
+                initial={{opacity: 0, y: 20}}
+                animate={{opacity: 1, y: 0}}
+                transition={{duration: 0.5, delay: 0.3}}
+            >
+                <StatsCard
+                    title="Tasks Assigned"
+                    value={stats.totalTasks.toString()}
+                    icon="✅"
+                    color="purple"
+                    description="Total tasks assigned to you"
+                    subValue={stats.overdueTasks > 0 ? `${stats.overdueTasks} overdue` : undefined}
+                    subValueColor={stats.overdueTasks > 0 ? 'red' : 'green'}
+                />
+            </motion.div>
 
-                <motion.div
-                    initial={{opacity: 0, y: 20}}
-                    animate={{opacity: 1, y: 0}}
-                    transition={{duration: 0.5, delay: 0.3}}
-                >
-                    <StatsCard
-                        title="Tasks Assigned"
-                        value={stats.totalTasks.toString()}
-                        icon="✅"
-                        color="purple"
-                        description="Total tasks assigned to you"
-                        subValue={stats.overdueTasks > 0 ? `${stats.overdueTasks} overdue` : undefined}
-                        subValueColor={stats.overdueTasks > 0 ? 'red' : 'green'}
-                    />
-                </motion.div>
+            <motion.div
+                initial={{opacity: 0, y: 20}}
+                animate={{opacity: 1, y: 0}}
+                transition={{duration: 0.5, delay: 0.4}}
+            >
+                <StatsCard
+                    title="Completion Rate"
+                    value={`${stats.completionRate}%`}
+                    icon="📈"
+                    color="orange"
+                    description="Task completion progress"
+                    progress={stats.completionRate}
+                />
+            </motion.div>
+        </div>
 
-                <motion.div
-                    initial={{opacity: 0, y: 20}}
-                    animate={{opacity: 1, y: 0}}
-                    transition={{duration: 0.5, delay: 0.4}}
-                >
-                    <StatsCard
-                        title="Completion Rate"
-                        value={`${stats.completionRate}%`}
-                        icon="📈"
-                        color="orange"
-                        description="Task completion progress"
-                        progress={stats.completionRate}
-                    />
-                </motion.div>
+        {/* Task Status Overview */}
+        {stats.totalTasks > 0 && (<motion.div
+            initial={{opacity: 0, y: 20}}
+            animate={{opacity: 1, y: 0}}
+            transition={{duration: 0.5, delay: 0.5}}
+            className="glass-card p-6"
+        >
+            <h3 className="text-xl font-bold text-white mb-6">Task Overview</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                {[{label: 'To Do', count: stats.tasksByStatus.todo, color: 'blue'}, {
+                    label: 'In Progress',
+                    count: stats.tasksByStatus.inProgress,
+                    color: 'amber'
+                }, {
+                    label: 'In Review',
+                    count: stats.tasksByStatus.review,
+                    color: 'purple'
+                }, {
+                    label: 'Completed',
+                    count: stats.tasksByStatus.completed,
+                    color: 'emerald'
+                },].map((status) => {
+                    const percentage = stats.totalTasks ? Math.round((status.count / stats.totalTasks) * 100) : 0;
+
+                    return (<div
+                        key={status.label}
+                        className="p-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md hover:scale-105 transform transition-all duration-200 cursor-pointer flex flex-col justify-between"
+                    >
+                        {/* Status Count */}
+                        <div className="flex items-center justify-between mb-3">
+                            <div className={`text-3xl font-bold text-${status.color}-300`}>
+                                {status.count}
+                            </div>
+                            <div className={`text-sm font-medium text-${status.color}-200`}>
+                                {status.label}
+                            </div>
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden mt-auto">
+                            <div
+                                className={`h-full rounded-full bg-${status.color}-400 transition-all duration-500`}
+                                style={{width: `${percentage}%`}}
+                            ></div>
+                        </div>
+
+                        {/* Percentage Label */}
+                        <div className="text-xs text-white/50 mt-2 text-right">
+                            {percentage}% of total tasks
+                        </div>
+                    </div>);
+                })}
             </div>
+        </motion.div>)}
 
-            {/* Task Status Overview */}
-            {stats.totalTasks > 0 && (<motion.div
-                    initial={{opacity: 0, y: 20}}
-                    animate={{opacity: 1, y: 0}}
-                    transition={{duration: 0.5, delay: 0.5}}
-                    className="glass-card p-6"
-                >
-                    <h3 className="text-xl font-bold text-white mb-6">Task Overview</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                        {[{label: 'To Do', count: stats.tasksByStatus.todo, color: 'blue'}, {
-                            label: 'In Progress',
-                            count: stats.tasksByStatus.inProgress,
-                            color: 'amber'
-                        }, {
-                            label: 'In Review',
-                            count: stats.tasksByStatus.review,
-                            color: 'purple'
-                        }, {
-                            label: 'Completed',
-                            count: stats.tasksByStatus.completed,
-                            color: 'emerald'
-                        },].map((status) => {
-                            const percentage = stats.totalTasks ? Math.round((status.count / stats.totalTasks) * 100) : 0;
+        {/* Main content grid */}
+        {hasData ? (<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Quick Actions */}
+            <motion.div
+                initial={{opacity: 0, x: -20}}
+                animate={{opacity: 1, x: 0}}
+                transition={{duration: 0.5, delay: 0.6}}
+                className="lg:col-span-1"
+            >
+                <QuickActions
+                    workspaceCount={stats.totalWorkspaces}
+                    projectCount={stats.totalProjects}
+                    taskCount={stats.totalTasks}
+                />
+            </motion.div>
 
-                            return (<div
-                                    key={status.label}
-                                    className="p-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md hover:scale-105 transform transition-all duration-200 cursor-pointer flex flex-col justify-between"
-                                >
-                                    {/* Status Count */}
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className={`text-3xl font-bold text-${status.color}-300`}>
-                                            {status.count}
-                                        </div>
-                                        <div className={`text-sm font-medium text-${status.color}-200`}>
-                                            {status.label}
-                                        </div>
-                                    </div>
-
-                                    {/* Progress Bar */}
-                                    <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden mt-auto">
-                                        <div
-                                            className={`h-full rounded-full bg-${status.color}-400 transition-all duration-500`}
-                                            style={{width: `${percentage}%`}}
-                                        ></div>
-                                    </div>
-
-                                    {/* Percentage Label */}
-                                    <div className="text-xs text-white/50 mt-2 text-right">
-                                        {percentage}% of total tasks
-                                    </div>
-                                </div>);
-                        })}
-                    </div>
-                </motion.div>)}
-
-            {/* Main content grid */}
-            {hasData ? (<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Quick Actions */}
-                    <motion.div
-                        initial={{opacity: 0, x: -20}}
-                        animate={{opacity: 1, x: 0}}
-                        transition={{duration: 0.5, delay: 0.6}}
-                        className="lg:col-span-1"
+            {/* Recent Activity */}
+            <motion.div
+                initial={{opacity: 0, x: 20}}
+                animate={{opacity: 1, x: 0}}
+                transition={{duration: 0.5, delay: 0.7}}
+                className="lg:col-span-2"
+            >
+                <RecentActivity activities={getRecentActivities()}/>
+            </motion.div>
+        </div>) : (/* Empty state for new users */
+            <motion.div
+                initial={{opacity: 0, y: 20}}
+                animate={{opacity: 1, y: 0}}
+                transition={{duration: 0.5, delay: 0.5}}
+                className="glass-card text-center py-12"
+            >
+                <div
+                    className="w-24 h-24 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <span className="text-4xl">🚀</span>
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-4">
+                    Ready to get started?
+                </h2>
+                <p className="text-white/70 mb-6 max-w-md mx-auto">
+                    Create your first workspace and start collaborating with your team.
+                    You'll be able to organize projects, assign tasks, and track progress all in one place.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <motion.button
+                        onClick={handleCreateWorkspace}
+                        className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200"
+                        whileHover={{scale: 1.05}}
+                        whileTap={{scale: 0.95}}
                     >
-                        <QuickActions
-                            workspaceCount={stats.totalWorkspaces}
-                            projectCount={stats.totalProjects}
-                            taskCount={stats.totalTasks}
-                        />
-                    </motion.div>
-
-                    {/* Recent Activity */}
-                    <motion.div
-                        initial={{opacity: 0, x: 20}}
-                        animate={{opacity: 1, x: 0}}
-                        transition={{duration: 0.5, delay: 0.7}}
-                        className="lg:col-span-2"
+                        Create Your First Workspace
+                    </motion.button>
+                    <button
+                        onClick={() => window.open('https://docs.smartworkspace.com', '_blank')}
+                        className="px-6 py-3 glass-button text-white font-semibold rounded-lg hover:bg-white/20 transition-all duration-200"
                     >
-                        <RecentActivity activities={getRecentActivities()}/>
-                    </motion.div>
-                </div>) : (/* Empty state for new users */
-                <motion.div
-                    initial={{opacity: 0, y: 20}}
-                    animate={{opacity: 1, y: 0}}
-                    transition={{duration: 0.5, delay: 0.5}}
-                    className="glass-card text-center py-12"
-                >
-                    <div
-                        className="w-24 h-24 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <span className="text-4xl">🚀</span>
+                        Learn More
+                    </button>
+                </div>
+            </motion.div>)}
+
+        {/* Quick Tips Section */}
+        {hasData && stats.totalTasks > 0 && (<motion.div
+            initial={{opacity: 0, y: 20}}
+            animate={{opacity: 1, y: 0}}
+            transition={{duration: 0.5, delay: 0.8}}
+            className="glass-card p-6"
+        >
+            <h3 className="text-xl font-bold text-white mb-4">Quick Tips</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {stats.overdueTasks > 0 && (
+                    <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+                        <div className="flex items-center space-x-2 text-red-400 mb-2">
+                            <span>⚠️</span>
+                            <span className="font-semibold">Attention Needed</span>
+                        </div>
+                        <p className="text-red-300 text-sm">
+                            You have {stats.overdueTasks} overdue task{stats.overdueTasks > 1 ? 's' : ''}.
+                            Review them soon.
+                        </p>
+                    </div>)}
+
+                {stats.tasksByStatus.todo > 0 && (
+                    <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                        <div className="flex items-center space-x-2 text-blue-400 mb-2">
+                            <span>📋</span>
+                            <span className="font-semibold">Tasks Pending</span>
+                        </div>
+                        <p className="text-blue-300 text-sm">
+                            {stats.tasksByStatus.todo} task{stats.tasksByStatus.todo > 1 ? 's' : ''} waiting to
+                            be started.
+                        </p>
+                    </div>)}
+
+
+                {stats.completionRate >= 80 && (<div
+                    className="p-4 bg-gradient-to-br from-gray-900/60 to-gray-800/40 border-l-4 border-green-500 rounded-r-xl backdrop-blur-md">
+                    <div className="flex items-start space-x-3">
+                        <div
+                            className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span className="text-green-400 text-sm">★</span>
+                        </div>
+                        <div>
+                            <div className="text-green-300 font-semibold mb-1">Exceptional Progress</div>
+                            <p className="text-green-200 text-sm leading-relaxed">
+                                With <span
+                                className="text-green-400 font-semibold">{stats.completionRate}%</span> of
+                                tasks completed,
+                                you're demonstrating outstanding productivity and efficiency.
+                            </p>
+                        </div>
                     </div>
-                    <h2 className="text-2xl font-bold text-white mb-4">
-                        Ready to get started?
-                    </h2>
-                    <p className="text-white/70 mb-6 max-w-md mx-auto">
-                        Create your first workspace and start collaborating with your team.
-                        You'll be able to organize projects, assign tasks, and track progress all in one place.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <motion.button
-                            onClick={handleCreateWorkspace}
-                            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200"
-                            whileHover={{scale: 1.05}}
-                            whileTap={{scale: 0.95}}
-                        >
-                            Create Your First Workspace
-                        </motion.button>
-                        <button
-                            onClick={() => window.open('https://docs.smartworkspace.com', '_blank')}
-                            className="px-6 py-3 glass-button text-white font-semibold rounded-lg hover:bg-white/20 transition-all duration-200"
-                        >
-                            Learn More
-                        </button>
-                    </div>
-                </motion.div>)}
-
-            {/* Quick Tips Section */}
-            {hasData && stats.totalTasks > 0 && (<motion.div
-                    initial={{opacity: 0, y: 20}}
-                    animate={{opacity: 1, y: 0}}
-                    transition={{duration: 0.5, delay: 0.8}}
-                    className="glass-card p-6"
-                >
-                    <h3 className="text-xl font-bold text-white mb-4">Quick Tips</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {stats.overdueTasks > 0 && (
-                            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-                                <div className="flex items-center space-x-2 text-red-400 mb-2">
-                                    <span>⚠️</span>
-                                    <span className="font-semibold">Attention Needed</span>
-                                </div>
-                                <p className="text-red-300 text-sm">
-                                    You have {stats.overdueTasks} overdue task{stats.overdueTasks > 1 ? 's' : ''}.
-                                    Review them soon.
-                                </p>
-                            </div>)}
-
-                        {stats.tasksByStatus.todo > 0 && (
-                            <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                                <div className="flex items-center space-x-2 text-blue-400 mb-2">
-                                    <span>📋</span>
-                                    <span className="font-semibold">Tasks Pending</span>
-                                </div>
-                                <p className="text-blue-300 text-sm">
-                                    {stats.tasksByStatus.todo} task{stats.tasksByStatus.todo > 1 ? 's' : ''} waiting to
-                                    be started.
-                                </p>
-                            </div>)}
-
-
-                        {stats.completionRate >= 80 && (<div
-                                className="p-4 bg-gradient-to-br from-gray-900/60 to-gray-800/40 border-l-4 border-green-500 rounded-r-xl backdrop-blur-md">
-                                <div className="flex items-start space-x-3">
-                                    <div
-                                        className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                                        <span className="text-green-400 text-sm">★</span>
-                                    </div>
-                                    <div>
-                                        <div className="text-green-300 font-semibold mb-1">Exceptional Progress</div>
-                                        <p className="text-green-200 text-sm leading-relaxed">
-                                            With <span
-                                            className="text-green-400 font-semibold">{stats.completionRate}%</span> of
-                                            tasks completed,
-                                            you're demonstrating outstanding productivity and efficiency.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>)}
-                    </div>
-                </motion.div>)}
-        </div>);
+                </div>)}
+            </div>
+        </motion.div>)}
+    </div>);
 };
 
 export default DashboardPage;

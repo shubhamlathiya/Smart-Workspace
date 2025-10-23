@@ -1,10 +1,10 @@
 // components/Tasks/KanbanBoardWrapper.jsx
-import React, { useState, useEffect } from 'react';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+import React, {useState, useEffect} from 'react';
+import {DndProvider} from 'react-dnd';
+import {HTML5Backend} from 'react-dnd-html5-backend';
 import KanbanBoard from './KanbanBoard';
 
-const KanbanBoardWrapper = ({ projectId }) => {
+const KanbanBoardWrapper = ({projectId}) => {
     const [dndKey, setDndKey] = useState(Date.now());
 
     useEffect(() => {
@@ -13,7 +13,7 @@ const KanbanBoardWrapper = ({ projectId }) => {
 
     return (
         <DndProvider backend={HTML5Backend} key={dndKey}>
-            <KanbanBoard projectId={projectId} />
+            <KanbanBoard projectId={projectId}/>
         </DndProvider>
     );
 };

@@ -1,17 +1,17 @@
 // components/Tasks/AssignUsersModal.jsx
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Search, UserPlus, Check } from 'lucide-react';
-import { useAppDispatch, useAppSelector } from '../../hooks/redux';
+import React, {useState, useEffect} from 'react';
+import {motion, AnimatePresence} from 'framer-motion';
+import {X, Search, UserPlus, Check} from 'lucide-react';
+import {useAppDispatch, useAppSelector} from '../../hooks/redux';
 import {assignTask, clearCurrentTask} from '../../features/task/taskSlice';
-import { closeModal } from '../../features/ui/uiSlice';
+import {closeModal} from '../../features/ui/uiSlice';
 
 const AssignUsersModal = () => {
     const dispatch = useAppDispatch();
-    const { modals } = useAppSelector(state => state.ui);
-    const { currentProject } = useAppSelector(state => state.project);
-    const { user } = useAppSelector(state => state.auth);
-    const { currentTask, isLoading } = useAppSelector(state => state.task);
+    const {modals} = useAppSelector(state => state.ui);
+    const {currentProject} = useAppSelector(state => state.project);
+    const {user} = useAppSelector(state => state.auth);
+    const {currentTask, isLoading} = useAppSelector(state => state.task);
 
     const [selectedUsers, setSelectedUsers] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -85,23 +85,23 @@ const AssignUsersModal = () => {
         <AnimatePresence>
             {isOpen && (
                 <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    initial={{opacity: 0}}
+                    animate={{opacity: 1}}
+                    exit={{opacity: 0}}
                     className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
                     onClick={handleClose}
                 >
                     <motion.div
-                        initial={{ scale: 0.9, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.9, opacity: 0 }}
+                        initial={{scale: 0.9, opacity: 0}}
+                        animate={{scale: 1, opacity: 1}}
+                        exit={{scale: 0.9, opacity: 0}}
                         className="glass-card max-w-md w-full max-h-[80vh] overflow-hidden"
                         onClick={e => e.stopPropagation()}
                     >
                         {/* Header */}
                         <div className="flex items-center justify-between p-6 border-b border-white/20">
                             <div className="flex items-center space-x-3">
-                                <UserPlus className="w-6 h-6 text-white" />
+                                <UserPlus className="w-6 h-6 text-white"/>
                                 <div>
                                     <h2 className="text-xl font-semibold text-white">Assign Team Members</h2>
                                     <p className="text-white/70 text-sm">Assign users to: {task?.title}</p>
@@ -111,7 +111,7 @@ const AssignUsersModal = () => {
                                 onClick={handleClose}
                                 className="p-2 hover:bg-white/10 rounded-lg transition-colors"
                             >
-                                <X className="w-5 h-5 text-white" />
+                                <X className="w-5 h-5 text-white"/>
                             </button>
                         </div>
 
@@ -119,7 +119,7 @@ const AssignUsersModal = () => {
                         <div className="p-6 space-y-4">
                             {/* Search */}
                             <div className="relative">
-                                <Search className="w-5 h-5 text-white/70 absolute left-3 top-3" />
+                                <Search className="w-5 h-5 text-white/70 absolute left-3 top-3"/>
                                 <input
                                     type="text"
                                     placeholder="Search team members..."
@@ -142,7 +142,8 @@ const AssignUsersModal = () => {
                                             }`}
                                             onClick={() => handleUserToggle(member.user._id)}
                                         >
-                                            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                            <div
+                                                className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                         <span className="text-white text-sm font-semibold">
                           {member.user.name?.charAt(0).toUpperCase() || 'U'}
                         </span>
@@ -163,15 +164,16 @@ const AssignUsersModal = () => {
                                                 }`}
                                             >
                                                 {isUserSelected(member.user._id) && (
-                                                    <Check className="w-3 h-3 text-white" />
+                                                    <Check className="w-3 h-3 text-white"/>
                                                 )}
                                             </div>
                                         </div>
                                     ))
                                 ) : (
                                     <div className="text-center py-8">
-                                        <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                                            <UserPlus className="w-6 h-6 text-white/70" />
+                                        <div
+                                            className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                                            <UserPlus className="w-6 h-6 text-white/70"/>
                                         </div>
                                         <p className="text-white/70">No team members found</p>
                                         <p className="text-white/50 text-sm mt-1">
@@ -208,12 +210,13 @@ const AssignUsersModal = () => {
                                 >
                                     {isLoading ? (
                                         <>
-                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                            <div
+                                                className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"/>
                                             <span>Assigning...</span>
                                         </>
                                     ) : (
                                         <>
-                                            <UserPlus className="w-4 h-4" />
+                                            <UserPlus className="w-4 h-4"/>
                                             <span>Assign</span>
                                         </>
                                     )}

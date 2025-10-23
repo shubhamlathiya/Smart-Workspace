@@ -1,11 +1,11 @@
 // hooks/useInvitation.js
-import { useState, useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from './redux';
-import { verifyInvitation, clearInvitation } from '../features/invitation/invitationSlice';
+import {useState, useEffect} from 'react';
+import {useAppDispatch, useAppSelector} from './redux';
+import {verifyInvitation, clearInvitation} from '../features/invitation/invitationSlice';
 
 export const useInvitation = (token) => {
     const dispatch = useAppDispatch();
-    const { currentInvitation, verificationLoading, error } = useAppSelector(
+    const {currentInvitation, verificationLoading, error} = useAppSelector(
         (state) => state.invitation
     );
 

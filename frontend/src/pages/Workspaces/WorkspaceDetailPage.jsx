@@ -242,9 +242,9 @@ const WorkspaceDetailPage = () => {
 
             {/* Navigation Tabs */}
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
+                initial={{opacity: 0, y: 20}}
+                animate={{opacity: 1, y: 0}}
+                transition={{duration: 0.5, delay: 0.1}}
                 className="p-4"
             >
                 <div className="flex space-x-2 bg-white/10 backdrop-blur-md rounded-xl p-1 shadow-sm">
@@ -283,7 +283,7 @@ const WorkspaceDetailPage = () => {
                             formatDate={formatDate}
                         />
 
-                        <QuickStats currentWorkspace={currentWorkspace} />
+                        <QuickStats currentWorkspace={currentWorkspace}/>
                     </div>
                 )}
 

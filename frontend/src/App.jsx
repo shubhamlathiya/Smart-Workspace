@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Provider } from 'react-redux';
-import { PersistGate } from 'redux-persist/integration/react';
-import { Toaster } from 'react-hot-toast';
+import React, {useEffect} from 'react';
+import {BrowserRouter as Router, Routes, Route, Navigate} from 'react-router-dom';
+import {Provider} from 'react-redux';
+import {PersistGate} from 'redux-persist/integration/react';
+import {Toaster} from 'react-hot-toast';
 
-import { store, persistor } from './store';
-import { useAppDispatch, useAppSelector } from './hooks/redux';
+import {store, persistor} from './store';
+import {useAppDispatch, useAppSelector} from './hooks/redux';
 
 // Components
 import Layout from './components/Layout/Layout.jsx';
@@ -27,17 +27,17 @@ import ProfilePage from './pages/Profile/ProfilePage.jsx';
 import NotFoundPage from './pages/NotFound/NotFoundPage.jsx';
 
 // Actions
-import { getCurrentUser } from './features/auth/authSlice.jsx';
-import { fetchWorkspaces } from './features/workspace/workspaceSlice.jsx';
-import { fetchProjects } from './features/project/projectSlice.jsx';
-import { fetchTasks } from './features/task/taskSlice.jsx';
+import {getCurrentUser} from './features/auth/authSlice.jsx';
+import {fetchWorkspaces} from './features/workspace/workspaceSlice.jsx';
+import {fetchProjects} from './features/project/projectSlice.jsx';
+import {fetchTasks} from './features/task/taskSlice.jsx';
 import InvitationAcceptPage from "./pages/Invitation/InvitationAcceptPage.jsx";
 
 // App component
 function AppContent() {
     const dispatch = useAppDispatch();
-    const { isAuthenticated, isLoading, user } = useAppSelector(state => state.auth);
-    const { globalLoading } = useAppSelector(state => state.ui);
+    const {isAuthenticated, isLoading, user} = useAppSelector(state => state.auth);
+    const {globalLoading} = useAppSelector(state => state.ui);
 
     // Initialize app data
     useEffect(() => {
@@ -70,7 +70,7 @@ function AppContent() {
     if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gradient-primary">
-                <LoadingSpinner size="large" />
+                <LoadingSpinner size="large"/>
             </div>
         );
     }
@@ -80,18 +80,18 @@ function AppContent() {
             <div className="min-h-screen bg-gradient-primary">
                 <Routes>
                     {/* Public routes */}
-                    <Route path="/register/accept" element={<RegisterPage />} />
+                    <Route path="/register/accept" element={<RegisterPage/>}/>
 
                     <Route
                         path="/login"
                         element={
-                            isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />
+                            isAuthenticated ? <Navigate to="/dashboard" replace/> : <LoginPage/>
                         }
                     />
                     <Route
                         path="/register"
                         element={
-                            isAuthenticated ? <Navigate to="/dashboard" replace /> : <RegisterPage />
+                            isAuthenticated ? <Navigate to="/dashboard" replace/> : <RegisterPage/>
                         }
                     />
 
@@ -100,37 +100,37 @@ function AppContent() {
                         path="/"
                         element={
                             <ProtectedRoute>
-                                <Layout />
+                                <Layout/>
                             </ProtectedRoute>
                         }
                     >
-                        <Route index element={<Navigate to="/dashboard" replace />} />
-                        <Route path="dashboard" element={<DashboardPage />} />
+                        <Route index element={<Navigate to="/dashboard" replace/>}/>
+                        <Route path="dashboard" element={<DashboardPage/>}/>
 
                         {/* Workspace routes */}
-                        <Route path="workspaces" element={<WorkspacesPage />} />
-                        <Route path="workspaces/:id" element={<WorkspaceDetailPage />} />
+                        <Route path="workspaces" element={<WorkspacesPage/>}/>
+                        <Route path="workspaces/:id" element={<WorkspaceDetailPage/>}/>
 
                         {/* Project routes */}
-                        <Route path="projects" element={<ProjectsPage />} />
-                        <Route path="projects/:id" element={<ProjectDetailPage />} />
+                        <Route path="projects" element={<ProjectsPage/>}/>
+                        <Route path="projects/:id" element={<ProjectDetailPage/>}/>
 
                         {/* Task routes */}
-                        <Route path="tasks" element={<TasksPage />} />
-                        <Route path="tasks/:id" element={<TaskDetailPage />} />
+                        <Route path="tasks" element={<TasksPage/>}/>
+                        <Route path="tasks/:id" element={<TaskDetailPage/>}/>
 
                         {/* Profile route */}
-                        <Route path="profile" element={<ProfilePage />} />
+                        <Route path="profile" element={<ProfilePage/>}/>
                     </Route>
 
                     {/* 404 route */}
-                    <Route path="*" element={<NotFoundPage />} />
+                    <Route path="*" element={<NotFoundPage/>}/>
                 </Routes>
 
                 {/* Global loading overlay */}
                 {globalLoading && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <LoadingSpinner size="large" />
+                        <LoadingSpinner size="large"/>
                     </div>
                 )}
 
@@ -161,7 +161,7 @@ function AppContent() {
                 />
 
                 {/* Modal Manager */}
-                <ModalManager />
+                <ModalManager/>
             </div>
         </Router>
     );
@@ -171,8 +171,8 @@ function AppContent() {
 function App() {
     return (
         <Provider store={store}>
-            <PersistGate loading={<LoadingSpinner size="large" />} persistor={persistor}>
-                <AppContent />
+            <PersistGate loading={<LoadingSpinner size="large"/>} persistor={persistor}>
+                <AppContent/>
             </PersistGate>
         </Provider>
     );

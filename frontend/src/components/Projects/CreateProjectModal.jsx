@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Users, FileText, Folder } from 'lucide-react';
-import { useAppSelector, useAppDispatch } from '../../hooks/redux';
+import React, {useState, useEffect} from 'react';
+import {motion, AnimatePresence} from 'framer-motion';
+import {X, Calendar, Users, FileText, Folder} from 'lucide-react';
+import {useAppSelector, useAppDispatch} from '../../hooks/redux';
 import {fetchWorkspaces} from "../../features/workspace/workspaceSlice.jsx";
 import {closeModal} from "../../features/ui/uiSlice.jsx";
 import {clearCurrentProject, createProject, updateProject} from "../../features/project/projectSlice.jsx";
@@ -9,10 +9,10 @@ import {clearCurrentProject, createProject, updateProject} from "../../features/
 
 const CreateProjectModal = () => {
     const dispatch = useAppDispatch();
-    const { modals } = useAppSelector(state => state.ui);
-    const { currentProject, isLoading } = useAppSelector(state => state.project);
-    const { user } = useAppSelector(state => state.auth);
-    const { workspaces } = useAppSelector(state => state.workspace);
+    const {modals} = useAppSelector(state => state.ui);
+    const {currentProject, isLoading} = useAppSelector(state => state.project);
+    const {user} = useAppSelector(state => state.auth);
+    const {workspaces} = useAppSelector(state => state.workspace);
 
     const isOpen = modals.createProject;
     const isEditMode = !!currentProject;
@@ -67,7 +67,7 @@ const CreateProjectModal = () => {
     };
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
+        const {name, value} = e.target;
         setFormData(prev => ({
             ...prev,
             [name]: value
@@ -146,7 +146,7 @@ const CreateProjectModal = () => {
                 workspace: formData.workspace,
                 priority: formData.priority,
                 tags: formData.tags,
-                ...(formData.dueDate && { dueDate: formData.dueDate })
+                ...(formData.dueDate && {dueDate: formData.dueDate})
             };
 
             if (isEditMode) {
@@ -193,16 +193,16 @@ const CreateProjectModal = () => {
         <AnimatePresence>
             {isOpen && (
                 <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    initial={{opacity: 0}}
+                    animate={{opacity: 1}}
+                    exit={{opacity: 0}}
                     className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
                     onClick={handleClose}
                 >
                     <motion.div
-                        initial={{ scale: 0.9, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.9, opacity: 0 }}
+                        initial={{scale: 0.9, opacity: 0}}
+                        animate={{scale: 1, opacity: 1}}
+                        exit={{scale: 0.9, opacity: 0}}
                         className="glass-card max-w-2xl w-full max-h-[90vh] overflow-hidden"
                         onClick={(e) => e.stopPropagation()}
                     >
@@ -223,7 +223,7 @@ const CreateProjectModal = () => {
                                 onClick={handleClose}
                                 className="p-2 hover:bg-white/10 rounded-lg transition-colors"
                             >
-                                <X className="w-5 h-5 text-white" />
+                                <X className="w-5 h-5 text-white"/>
                             </button>
                         </div>
 
@@ -236,7 +236,8 @@ const CreateProjectModal = () => {
                                         Project Name *
                                     </label>
                                     <div className="relative">
-                                        <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/50" />
+                                        <FileText
+                                            className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/50"/>
                                         <input
                                             type="text"
                                             name="name"
@@ -287,7 +288,8 @@ const CreateProjectModal = () => {
                                         Workspace *
                                     </label>
                                     <div className="relative">
-                                        <Folder className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/50" />
+                                        <Folder
+                                            className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/50"/>
                                         <select
                                             name="workspace"
                                             value={formData.workspace}
@@ -341,7 +343,8 @@ const CreateProjectModal = () => {
                                             Due Date
                                         </label>
                                         <div className="relative">
-                                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/50" />
+                                            <Calendar
+                                                className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/50"/>
                                             <input
                                                 type="date"
                                                 name="dueDate"
@@ -422,7 +425,8 @@ const CreateProjectModal = () => {
                                     >
                                         {isLoading ? (
                                             <div className="flex items-center justify-center">
-                                                <div className="w-5 h-5 border-t-2 border-white border-solid rounded-full animate-spin mr-2"></div>
+                                                <div
+                                                    className="w-5 h-5 border-t-2 border-white border-solid rounded-full animate-spin mr-2"></div>
                                                 {isEditMode ? 'Updating...' : 'Creating...'}
                                             </div>
                                         ) : (

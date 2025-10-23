@@ -1,8 +1,8 @@
 import React from 'react';
-import { Users, ShieldCheck, User } from 'lucide-react';
-import { motion } from 'framer-motion';
+import {Users, ShieldCheck, User} from 'lucide-react';
+import {motion} from 'framer-motion';
 
-const QuickStats = ({ currentWorkspace }) => {
+const QuickStats = ({currentWorkspace}) => {
     const stats = [
         {
             title: 'Members',
@@ -26,9 +26,9 @@ const QuickStats = ({ currentWorkspace }) => {
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+            initial={{opacity: 0, y: 20}}
+            animate={{opacity: 1, y: 0}}
+            transition={{duration: 0.5, delay: 0.1}}
             className="grid grid-cols-1 sm:grid-cols-3 gap-4"
         >
             {stats.map((stat, index) => {
@@ -38,7 +38,7 @@ const QuickStats = ({ currentWorkspace }) => {
                         <div
                             className={`w-12 h-12 mb-2 bg-gradient-to-r ${stat.color} rounded-full flex items-center justify-center`}
                         >
-                            <Icon className="w-6 h-6 text-white" />
+                            <Icon className="w-6 h-6 text-white"/>
                         </div>
                         <p className="text-2xl font-bold text-white">{stat.value}</p>
                         <p className="text-white/70 text-sm">{stat.title}</p>

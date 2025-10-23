@@ -1,8 +1,8 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { FolderOpen, Rocket, CheckCircle, Pause } from 'lucide-react';
+import {motion} from 'framer-motion';
+import {FolderOpen, Rocket, CheckCircle, Pause} from 'lucide-react';
 
-const ProjectStatsCards = ({ projectStats }) => {
+const ProjectStatsCards = ({projectStats}) => {
     const stats = [
         {
             title: 'Total Projects',
@@ -32,9 +32,9 @@ const ProjectStatsCards = ({ projectStats }) => {
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+            initial={{opacity: 0, y: 20}}
+            animate={{opacity: 1, y: 0}}
+            transition={{duration: 0.5, delay: 0.1}}
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
         >
             {stats.map((stat, idx) => {
@@ -49,7 +49,7 @@ const ProjectStatsCards = ({ projectStats }) => {
                             <div
                                 className={`w-12 h-12 bg-gradient-to-r ${stat.gradient} rounded-full flex items-center justify-center`}
                             >
-                                <Icon className="w-6 h-6 text-white" />
+                                <Icon className="w-6 h-6 text-white"/>
                             </div>
                         </div>
                     </div>

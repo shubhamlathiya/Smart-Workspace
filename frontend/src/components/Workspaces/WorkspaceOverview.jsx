@@ -1,12 +1,12 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import {motion} from 'framer-motion';
 
-const WorkspaceOverview = ({ currentWorkspace, isOwner, user, formatDate }) => {
+const WorkspaceOverview = ({currentWorkspace, isOwner, user, formatDate}) => {
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+            initial={{opacity: 0, y: 20}}
+            animate={{opacity: 1, y: 0}}
+            transition={{duration: 0.5, delay: 0.1}}
             className="lg:col-span-2 space-y-6"
         >
             <h3 className="text-xl font-bold text-white mb-4">Workspace Overview</h3>

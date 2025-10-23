@@ -25,7 +25,7 @@ const ModalManager = () => {
             {/* Task Modals */}
             <CreateTaskModal/>
             <AssignUsersModal/>
-            <TaskDetailModal />
+            <TaskDetailModal/>
 
             {/* Profile Modals */}
             <EditProfileModal/>

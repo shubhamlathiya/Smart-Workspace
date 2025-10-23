@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { useAppDispatch, useAppSelector } from '../../hooks/redux';
+import React, {useState, useEffect} from 'react';
+import {motion} from 'framer-motion';
+import {useAppDispatch, useAppSelector} from '../../hooks/redux';
 import {deleteProject, fetchProjects, setCurrentProject} from "../../features/project/projectSlice.jsx";
 import {openModal} from "../../features/ui/uiSlice.jsx";
 import {useNavigate} from "react-router-dom";
@@ -9,8 +9,8 @@ import ProjectStatsCards from "../../components/Projects/ProjectStatsCards.jsx";
 
 const ProjectsPage = () => {
     const dispatch = useAppDispatch();
-    const { projects, isLoading, currentProject } = useAppSelector((state) => state.project);
-    const { user } = useAppSelector((state) => state.auth);
+    const {projects, isLoading, currentProject} = useAppSelector((state) => state.project);
+    const {user} = useAppSelector((state) => state.auth);
 
     const [viewMode, setViewMode] = useState('grid'); // grid, list
     const [filterStatus, setFilterStatus] = useState('all');
@@ -113,9 +113,9 @@ const ProjectsPage = () => {
         <div className="space-y-6">
             {/* Header */}
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
+                initial={{opacity: 0, y: 20}}
+                animate={{opacity: 1, y: 0}}
+                transition={{duration: 0.5}}
             >
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                     <div>
@@ -132,13 +132,13 @@ const ProjectsPage = () => {
             </motion.div>
 
             {/* Stats Cards */}
-            <ProjectStatsCards projectStats={projectStats} />
+            <ProjectStatsCards projectStats={projectStats}/>
 
             {/* Filters and Search */}
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
+                initial={{opacity: 0, y: 20}}
+                animate={{opacity: 1, y: 0}}
+                transition={{duration: 0.5, delay: 0.2}}
                 className="p-4"
             >
                 <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
@@ -189,19 +189,21 @@ const ProjectsPage = () => {
 
             {/* Projects Grid/List */}
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
+                initial={{opacity: 0, y: 20}}
+                animate={{opacity: 1, y: 0}}
+                transition={{duration: 0.5, delay: 0.3}}
                 className=" p-6"
             >
                 {isLoading ? (
                     <div className="text-center py-12">
-                        <div className="w-12 h-12 border-t-2 border-blue-500 border-solid rounded-full animate-spin mx-auto mb-4"></div>
+                        <div
+                            className="w-12 h-12 border-t-2 border-blue-500 border-solid rounded-full animate-spin mx-auto mb-4"></div>
                         <p className="text-white/70">Loading projects...</p>
                     </div>
                 ) : filteredProjects.length === 0 ? (
                     <div className="text-center py-12">
-                        <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <div
+                            className="w-24 h-24 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
                             <span className="text-4xl">📁</span>
                         </div>
                         <h2 className="text-2xl font-bold text-white mb-4">
@@ -312,7 +314,8 @@ const ProjectsPage = () => {
                             >
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center space-x-4 flex-1">
-                                        <div className={`w-3 h-12 rounded-full bg-gradient-to-b ${getStatusColor(project.status)}`}></div>
+                                        <div
+                                            className={`w-3 h-12 rounded-full bg-gradient-to-b ${getStatusColor(project.status)}`}></div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center space-x-3 mb-1">
                                                 <h3 className="text-lg font-bold text-white truncate">{project.name}</h3>

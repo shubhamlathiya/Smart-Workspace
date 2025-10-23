@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../../hooks/redux';
+import React, {useState, useEffect} from 'react';
+import {motion} from 'framer-motion';
+import {useNavigate, Link, useSearchParams} from 'react-router-dom';
+import {useAppDispatch, useAppSelector} from '../../hooks/redux';
 import {registerUser} from "../../features/auth/authSlice.jsx";
 
 
@@ -9,7 +9,7 @@ const RegisterPage = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const { isLoading, error } = useAppSelector((state) => state.auth);
+    const {isLoading, error} = useAppSelector((state) => state.auth);
 
     // Get invitation parameters from URL
     const workspaceId = searchParams.get('workspace');
@@ -40,7 +40,7 @@ const RegisterPage = () => {
                 email: invitationEmail,
                 role
             });
-        }else if (invitationEmail && projectId) {
+        } else if (invitationEmail && projectId) {
             setIsInvitation(true);
             console.log('Workspace invitation detected:', {
                 projectId,
@@ -51,7 +51,7 @@ const RegisterPage = () => {
     }, [workspaceId, invitationEmail, projectId, role]);
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
+        const {name, value} = e.target;
         setFormData(prev => ({
             ...prev,
             [name]: value
@@ -122,7 +122,7 @@ const RegisterPage = () => {
             if (isInvitation) {
                 userData.invitation = {
                     workspaceId: formData.workspaceId,
-                    projectId: formData.projectId ,
+                    projectId: formData.projectId,
                     role: formData.role,
                     email: formData.email
                 };
@@ -171,16 +171,17 @@ const RegisterPage = () => {
     return (
         <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
+                initial={{opacity: 0, y: 20}}
+                animate={{opacity: 1, y: 0}}
+                transition={{duration: 0.5}}
                 className=" max-w-md w-full"
             >
                 {/* Header with invitation info */}
                 <div className="text-center mb-8">
                     {isInvitation ? (
                         <>
-                            <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <div
+                                className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <span className="text-2xl">👥</span>
                             </div>
                             <h1 className="text-2xl font-bold text-white mb-2">Join Workspace</h1>
@@ -326,7 +327,8 @@ const RegisterPage = () => {
                     >
                         {isLoading ? (
                             <div className="flex items-center justify-center">
-                                <div className="w-5 h-5 border-t-2 border-white border-solid rounded-full animate-spin mr-2"></div>
+                                <div
+                                    className="w-5 h-5 border-t-2 border-white border-solid rounded-full animate-spin mr-2"></div>
                                 {isInvitation ? 'Joining Workspace...' : 'Creating Account...'}
                             </div>
                         ) : (

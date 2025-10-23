@@ -1,18 +1,17 @@
 // pages/InvitationAcceptPage.jsx
-import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import React, {useState, useEffect} from 'react';
+import {useSearchParams, useNavigate} from 'react-router-dom';
+import {motion} from 'framer-motion';
 import {useAppDispatch, useAppSelector} from "../../hooks/redux.js";
 import {acceptInvitation, verifyInvitation} from "../../features/invitation/invitationSlice.jsx";
 import LoadingSpinner from "../../components/UI/LoadingSpinner.jsx";
-
 
 
 const InvitationAcceptPage = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
-    const { user, isAuthenticated } = useAppSelector(state => state.auth);
+    const {user, isAuthenticated} = useAppSelector(state => state.auth);
 
     const token = searchParams.get('token');
     const [invitationData, setInvitationData] = useState(null);
@@ -105,7 +104,7 @@ const InvitationAcceptPage = () => {
             case 'loading':
                 return (
                     <div className="text-center py-12">
-                        <LoadingSpinner size="large" />
+                        <LoadingSpinner size="large"/>
                         <p className="text-white/70 mt-4">Verifying your invitation...</p>
                     </div>
                 );
@@ -131,9 +130,11 @@ const InvitationAcceptPage = () => {
             case 'success':
                 return (
                     <div className="text-center py-12">
-                        <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        <div
+                            className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor"
+                                 viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/>
                             </svg>
                         </div>
                         <h2 className="text-2xl font-bold text-white mb-4">Invitation Accepted!</h2>
@@ -152,9 +153,12 @@ const InvitationAcceptPage = () => {
             case 'error':
                 return (
                     <div className="text-center py-12">
-                        <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        <div
+                            className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor"
+                                 viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                      d="M6 18L18 6M6 6l12 12"/>
                             </svg>
                         </div>
                         <h2 className="text-2xl font-bold text-white mb-4">Invitation Error</h2>
@@ -176,8 +180,8 @@ const InvitationAcceptPage = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black flex items-center justify-center p-4">
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{opacity: 0, y: 20}}
+                animate={{opacity: 1, y: 0}}
                 className="glass-card max-w-md w-full p-8"
             >
                 {renderContent()}
@@ -187,7 +191,7 @@ const InvitationAcceptPage = () => {
 };
 
 // Login Form Component
-const LoginForm = ({ invitationData, onLogin, onRegisterRedirect }) => {
+const LoginForm = ({invitationData, onLogin, onRegisterRedirect}) => {
     const [formData, setFormData] = useState({
         email: invitationData?.email || '',
         password: ''
@@ -219,7 +223,7 @@ const LoginForm = ({ invitationData, onLogin, onRegisterRedirect }) => {
                     <input
                         type="email"
                         value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        onChange={(e) => setFormData({...formData, email: e.target.value})}
                         className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                     />
@@ -232,7 +236,7 @@ const LoginForm = ({ invitationData, onLogin, onRegisterRedirect }) => {
                     <input
                         type="password"
                         value={formData.password}
-                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        onChange={(e) => setFormData({...formData, password: e.target.value})}
                         className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                     />
@@ -262,7 +266,7 @@ const LoginForm = ({ invitationData, onLogin, onRegisterRedirect }) => {
 };
 
 // Register Redirect Component
-const RegisterRedirect = ({ invitationData, onRegister, onLoginRedirect }) => {
+const RegisterRedirect = ({invitationData, onRegister, onLoginRedirect}) => {
     return (
         <div className="text-center">
             <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
