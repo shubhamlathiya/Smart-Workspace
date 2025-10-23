@@ -13,6 +13,7 @@ import TaskDetailModal from '../../components/Tasks/TaskDetailModal.jsx';
 import KanbanBoardWrapper from '../../components/Tasks/KanbanBoardWrapper.jsx';
 import {showConfirmAlert, showErrorAlert, showSuccessAlert} from "../../utils/alerts.jsx";
 import {useSocket, useProjectSocket} from '../../hooks/useSocket';
+import StatsCard from "../../components/Dashboard/StatsCard.jsx";
 
 const ProjectDetailPage = () => {
     const {id} = useParams();
@@ -453,87 +454,14 @@ const ProjectDetailPage = () => {
         </motion.div>
 
         {/* Stats Cards */}
-        <motion.div
-            initial={{opacity: 0, y: 20}}
-            animate={{opacity: 1, y: 0}}
-            transition={{duration: 0.5, delay: 0.1}}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4"
-        >
-            <div className="glass-card p-4">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="text-white/70 text-sm">Progress</p>
-                        <p className="text-2xl font-bold text-white">{progress}%</p>
-                    </div>
-                    <div
-                        className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
-                        <span className="text-xl">📈</span>
-                    </div>
-                </div>
-                <div className="w-full bg-white/10 rounded-full h-2 mt-3">
-                    <div
-                        className="bg-gradient-to-r from-green-500 to-blue-600 h-2 rounded-full transition-all duration-300"
-                        style={{width: `${progress}%`}}
-                    ></div>
-                </div>
-            </div>
-
-            <div className="glass-card p-4">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="text-white/70 text-sm">Total Tasks</p>
-                        <p className="text-2xl font-bold text-white">{taskStats.total}</p>
-                    </div>
-                    <div
-                        className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-full flex items-center justify-center">
-                        <span className="text-xl">✅</span>
-                    </div>
-                </div>
-                <p className="text-white/70 text-sm mt-2">
-                    {taskStats.completed} completed
-                </p>
-            </div>
-
-            <div className="glass-card p-4">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="text-white/70 text-sm">Pending</p>
-                        <p className="text-2xl font-bold text-white">{taskStats.pending}</p>
-                    </div>
-                    <div
-                        className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-full flex items-center justify-center">
-                        <span className="text-xl">⏳</span>
-                    </div>
-                </div>
-            </div>
-
-            <div className="glass-card p-4">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="text-white/70 text-sm">Overdue</p>
-                        <p className="text-2xl font-bold text-white">{taskStats.overdue}</p>
-                    </div>
-                    <div
-                        className="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center">
-                        <span className="text-xl">⚠️</span>
-                    </div>
-                </div>
-            </div>
-
-            <div className="glass-card p-4">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="text-white/70 text-sm">Team Members</p>
-                        <p className="text-2xl font-bold text-white">
-                            {currentProject.assignedMembers?.length || 0}
-                        </p>
-                    </div>
-                    <div
-                        className="w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full flex items-center justify-center">
-                        <span className="text-xl">👥</span>
-                    </div>
-                </div>
-            </div>
+        <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <StatsCard title="Progress" value={`${progress}%`} color="green" icon="TrendingUp" progress={progress}/>
+            <StatsCard title="Total Tasks" value={taskStats.total} subValue={`${taskStats.completed} completed`}
+                       color="blue" icon="CheckSquare"/>
+            <StatsCard title="Pending" value={taskStats.pending} color="yellow" icon="Clock"/>
+            <StatsCard title="Overdue" value={taskStats.overdue} color="red" icon="AlertCircle"/>
+            <StatsCard title="Team Members" value={currentProject.assignedMembers?.length || 0} color="purple"
+                       icon="Users"/>
         </motion.div>
 
         {/* Navigation Tabs */}
@@ -563,99 +491,105 @@ const ProjectDetailPage = () => {
         >
             {/* Overview Tab */}
             {activeTab === 'overview' && (<div className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Project Details */}
-                    <div className="lg:col-span-2 space-y-4">
-                        <h3 className="text-xl font-bold text-white mb-4">Project Details</h3>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Project Details */}
+                        <div className="lg:col-span-2 space-y-6">
+                            <h3 className="text-xl font-bold text-white mb-4">Project Details</h3>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-white/70 mb-2">Priority</label>
-                                {isEditing ? (<select
-                                    name="priority"
-                                    value={editData.priority}
-                                    onChange={handleEditChange}
-                                    className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="low">Low</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="high">High</option>
-                                </select>) : (<span
-                                    className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getPriorityColor(currentProject.priority)}`}>
-                                                {getPriorityText(currentProject.priority)}
-                                            </span>)}
-                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Priority */}
+                                <div className="glass-card p-4">
+                                    <label className="block text-sm font-medium text-white/70 mb-2">Priority</label>
+                                    {isEditing ? (
+                                        <select
+                                            name="priority"
+                                            value={editData.priority}
+                                            onChange={handleEditChange}
+                                            className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        >
+                                            <option value="low">Low</option>
+                                            <option value="medium">Medium</option>
+                                            <option value="high">High</option>
+                                        </select>
+                                    ) : (
+                                        <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getPriorityColor(currentProject.priority)}`}>
+              {getPriorityText(currentProject.priority)}
+            </span>
+                                    )}
+                                </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-white/70 mb-2">Due Date</label>
-                                {isEditing ? (<input
-                                    type="date"
-                                    name="dueDate"
-                                    value={editData.dueDate ? editData.dueDate.split('T')[0] : ''}
-                                    onChange={handleEditChange}
-                                    className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />) : (<p className="text-white">{formatDate(currentProject.dueDate)}</p>)}
-                            </div>
+                                {/* Due Date */}
+                                <div className="glass-card p-4">
+                                    <label className="block text-sm font-medium text-white/70 mb-2">Due Date</label>
+                                    {isEditing ? (
+                                        <input
+                                            type="date"
+                                            name="dueDate"
+                                            value={editData.dueDate ? editData.dueDate.split('T')[0] : ''}
+                                            onChange={handleEditChange}
+                                            className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    ) : (
+                                        <p className="text-white">{formatDate(currentProject.dueDate)}</p>
+                                    )}
+                                </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-white/70 mb-2">Created</label>
-                                <p className="text-white">{formatDate(currentProject.createdAt)}</p>
-                            </div>
+                                {/* Created At */}
+                                <div className="glass-card p-4">
+                                    <label className="block text-sm font-medium text-white/70 mb-2">Created</label>
+                                    <p className="text-white">{formatDate(currentProject.createdAt)}</p>
+                                </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-white/70 mb-2">Last
-                                    Updated</label>
-                                <p className="text-white">{formatDate(currentProject.updatedAt)}</p>
+                                {/* Last Updated */}
+                                <div className="glass-card p-4">
+                                    <label className="block text-sm font-medium text-white/70 mb-2">Last Updated</label>
+                                    <p className="text-white">{formatDate(currentProject.updatedAt)}</p>
+                                </div>
+
+                                {/* Workspace */}
+                                {currentProject.workspace && (
+                                    <div className="glass-card p-4 md:col-span-2">
+                                        <label className="block text-sm font-medium text-white/70 mb-2">Workspace</label>
+                                        <p className="text-white font-semibold">{currentProject.workspace.name}</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
-                        {currentProject.workspace && (<div>
-                            <label
-                                className="block text-sm font-medium text-white/70 mb-2">Workspace</label>
-                            <p className="text-white">{currentProject.workspace.name}</p>
-                        </div>)}
-                    </div>
-
-                    {/* Quick Actions */}
-                    <div className="space-y-4">
-                        <h3 className="text-xl font-bold text-white mb-4">Quick Actions</h3>
-                        <div className="space-y-3">
-                            <button
-                                onClick={() => setActiveTab('tasks')}
-                                className="w-full p-4 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 transition-all duration-200 text-left"
-                            >
-                                <div className="flex items-center space-x-3">
-                                    <div
-                                        className="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-full flex items-center justify-center">
-                                        <span className="text-lg">➕</span>
+                        {/* Quick Actions */}
+                        <div className="space-y-4">
+                            <h3 className="text-xl font-bold text-white mb-4">Quick Actions</h3>
+                            <div className="space-y-4">
+                                <button
+                                    onClick={() => setActiveTab('tasks')}
+                                    className="glass-card w-full p-4 flex items-center space-x-4 hover:shadow-lg transition-shadow duration-200"
+                                >
+                                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-full flex items-center justify-center text-lg">
+                                        ➕
                                     </div>
-                                    <div>
+                                    <div className="text-left">
                                         <p className="text-white font-semibold">Add New Task</p>
-                                        <p className="text-white/70 text-sm">Create a new task in this
-                                            project</p>
+                                        <p className="text-white/70 text-sm">Create a new task in this project</p>
                                     </div>
-                                </div>
-                            </button>
+                                </button>
 
-                            <button
-                                onClick={handleAddMember}
-                                className="w-full p-4 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 transition-all duration-200 text-left"
-                            >
-                                <div className="flex items-center space-x-3">
-                                    <div
-                                        className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
-                                        <span className="text-lg">👥</span>
+                                <button
+                                    onClick={handleAddMember}
+                                    className="glass-card w-full p-4 flex items-center space-x-4 hover:shadow-lg transition-shadow duration-200"
+                                >
+                                    <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-lg">
+                                        👥
                                     </div>
-                                    <div>
+                                    <div className="text-left">
                                         <p className="text-white font-semibold">Invite Team Member</p>
                                         <p className="text-white/70 text-sm">Add someone to this project</p>
                                     </div>
-                                </div>
-                            </button>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>)}
+            )}
 
             {/* Tasks Tab */}
             {activeTab === 'tasks' && (<div className="space-y-6">
@@ -745,39 +679,42 @@ const ProjectDetailPage = () => {
                 </div>
 
                 {currentProject.assignedMembers && currentProject.assignedMembers.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {currentProject.assignedMembers.map((member) => (<div
-                            key={member.user._id}
-                            className="p-4 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 transition-all duration-200"
-                        >
-                            <div className="flex items-center space-x-3 mb-3">
-                                <div
-                                    className="w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full flex items-center justify-center">
-                                                <span className="text-white font-semibold">
-                                                    {member.user.name ? member.user.name.charAt(0).toUpperCase() : 'U'}
-                                                </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {currentProject.assignedMembers.map((member) => (
+                            <div
+                                key={member.user._id}
+                                className="glass-card p-5 hover:shadow-lg transition-shadow duration-200 border border-white/10 rounded-xl"
+                            >
+                                {/* Member Info */}
+                                <div className="flex items-center space-x-4 mb-4">
+                                    <div className="w-14 h-14 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full flex items-center justify-center text-xl font-bold text-white">
+                                        {member.user.name ? member.user.name.charAt(0).toUpperCase() : 'U'}
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <h4 className="text-white font-semibold">{member.user.name}</h4>
+                                        <p className="text-white/70 text-sm truncate">{member.user.email}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h4 className="text-white font-semibold">{member.user.name}</h4>
-                                    <p className="text-white/70 text-sm">{member.user.email}</p>
-                                </div>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                            <span
-                                                className="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded-full">
-                                                {member.role}
-                                            </span>
-                                {currentProject.createdBy === user._id && user._id !== member.user._id && (
-                                    <button
-                                        onClick={() => handleRemoveMember(member.user._id)}
-                                        className="text-red-400 hover:text-red-300 text-sm transition-colors"
-                                    >
-                                        Remove
-                                    </button>)}
 
+                                {/* Role and Actions */}
+                                <div className="flex justify-between items-center">
+        <span className="px-3 py-1 bg-blue-500/20 text-white text-xs font-medium rounded-full">
+          {member.role}
+        </span>
+
+                                    {currentProject.createdBy === user._id && user._id !== member.user._id && (
+                                        <button
+                                            onClick={() => handleRemoveMember(member.user._id)}
+                                            className="text-red-400 hover:text-red-300 text-sm font-medium transition-colors"
+                                        >
+                                            Remove
+                                        </button>
+                                    )}
+                                </div>
                             </div>
-                        </div>))}
-                    </div>) : (<div className="text-center py-12">
+                        ))}
+                    </div>
+                ) : (<div className="text-center py-12">
                     <div
                         className="w-24 h-24 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
                         <span className="text-4xl">👥</span>

@@ -11,6 +11,8 @@ import {
 import {openModal} from "../../features/ui/uiSlice.jsx";
 import Swal from "sweetalert2";
 import {showConfirmAlert, showErrorAlert, showSuccessAlert} from "../../utils/alerts.jsx";
+import QuickStats from "../../components/Workspaces/QuickStats.jsx";
+import WorkspaceOverview from "../../components/Workspaces/WorkspaceOverview.jsx";
 
 
 const WorkspaceDetailPage = () => {
@@ -272,96 +274,15 @@ const WorkspaceDetailPage = () => {
                 {/* Overview Tab */}
                 {activeTab === 'overview' && (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Basic Info */}
-                        <div className="lg:col-span-2 space-y-6">
-                            <h3 className="text-xl font-bold text-white mb-4">Workspace Overview</h3>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className=" p-4">
-                                    <h4 className="font-semibold text-white mb-2">Basic Information</h4>
-                                    <div className="space-y-2 text-sm">
-                                        <div className="flex justify-between">
-                                            <span className="text-white/70">Owner:</span>
-                                            <span className="text-white">{currentWorkspace.owner?.name}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-white/70">Created:</span>
-                                            <span className="text-white">{formatDate(currentWorkspace.createdAt)}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-white/70">Last Updated:</span>
-                                            <span className="text-white">{formatDate(currentWorkspace.updatedAt)}</span>
-                                        </div>
-                                    </div>
-                                </div>
+                        <WorkspaceOverview
+                            currentWorkspace={currentWorkspace}
+                            user={user}
+                            isOwner={isOwner}
+                            formatDate={formatDate}
+                        />
 
-                                <div className=" p-4">
-                                    <h4 className="font-semibold text-white mb-2">Settings</h4>
-                                    <div className="space-y-2 text-sm">
-                                        <div className="flex justify-between">
-                                            <span className="text-white/70">Visibility:</span>
-                                            <span className={`font-semibold ${
-                                                currentWorkspace.settings?.isPublic ? 'text-green-400' : 'text-blue-400'
-                                            }`}>
-                        {currentWorkspace.settings?.isPublic ? 'Public' : 'Private'}
-                      </span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-white/70">Members:</span>
-                                            <span className="text-white">{currentWorkspace.members?.length || 0}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-white/70">Your Role:</span>
-                                            <span className="text-white capitalize">
-                        {isOwner ? 'Owner' : currentWorkspace.members?.find(m => m.user?._id === user?._id)?.role || 'Member'}
-                      </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Tags */}
-                            {currentWorkspace.tags && currentWorkspace.tags.length > 0 && (
-                                <div className=" p-4">
-                                    <h4 className="font-semibold text-white mb-3">Tags</h4>
-                                    <div className="flex flex-wrap gap-2">
-                                        {currentWorkspace.tags.map((tag, idx) => (
-                                            <span
-                                                key={idx}
-                                                className="px-3 py-1 bg-blue-500/20 text-blue-400 text-sm rounded-full border border-blue-500/30"
-                                            >
-                        {tag}
-                      </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Quick Stats */}
-                        <div className="space-y-4">
-                            <h4 className="text-lg font-bold text-white">Quick Stats</h4>
-
-                            <div className="glass-card p-4 text-center">
-                                <div
-                                    className="text-2xl font-bold text-white mb-1">{currentWorkspace.members?.length || 0}</div>
-                                <div className="text-white/70 text-sm">Total Members</div>
-                            </div>
-
-                            <div className="glass-card p-4 text-center">
-                                <div className="text-2xl font-bold text-blue-400 mb-1">
-                                    {currentWorkspace.members?.filter(m => m.role === 'admin').length || 0}
-                                </div>
-                                <div className="text-white/70 text-sm">Admins</div>
-                            </div>
-
-                            <div className="glass-card p-4 text-center">
-                                <div className="text-2xl font-bold text-green-400 mb-1">
-                                    {currentWorkspace.members?.filter(m => m.role === 'member').length || 0}
-                                </div>
-                                <div className="text-white/70 text-sm">Members</div>
-                            </div>
-                        </div>
+                        <QuickStats currentWorkspace={currentWorkspace} />
                     </div>
                 )}
 

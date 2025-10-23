@@ -5,6 +5,7 @@ import {deleteProject, fetchProjects, setCurrentProject} from "../../features/pr
 import {openModal} from "../../features/ui/uiSlice.jsx";
 import {useNavigate} from "react-router-dom";
 import {showConfirmAlert, showErrorAlert, showSuccessAlert} from "../../utils/alerts.jsx";
+import ProjectStatsCards from "../../components/Projects/ProjectStatsCards.jsx";
 
 const ProjectsPage = () => {
     const dispatch = useAppDispatch();
@@ -131,60 +132,7 @@ const ProjectsPage = () => {
             </motion.div>
 
             {/* Stats Cards */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-            >
-                <div className="glass-card p-4">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-white/70 text-sm">Total Projects</p>
-                            <p className="text-2xl font-bold text-white">{projectStats.total}</p>
-                        </div>
-                        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-full flex items-center justify-center">
-                            <span className="text-xl">📁</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="glass-card p-4">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-white/70 text-sm">Active</p>
-                            <p className="text-2xl font-bold text-white">{projectStats.active}</p>
-                        </div>
-                        <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
-                            <span className="text-xl">🚀</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="glass-card p-4">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-white/70 text-sm">Completed</p>
-                            <p className="text-2xl font-bold text-white">{projectStats.completed}</p>
-                        </div>
-                        <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full flex items-center justify-center">
-                            <span className="text-xl">✅</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="glass-card p-4">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-white/70 text-sm">On Hold</p>
-                            <p className="text-2xl font-bold text-white">{projectStats.onHold}</p>
-                        </div>
-                        <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center">
-                            <span className="text-xl">⏸️</span>
-                        </div>
-                    </div>
-                </div>
-            </motion.div>
+            <ProjectStatsCards projectStats={projectStats} />
 
             {/* Filters and Search */}
             <motion.div

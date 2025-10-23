@@ -6,6 +6,7 @@ import {useNavigate} from 'react-router-dom';
 import {clearError, fetchWorkspaces, setCurrentWorkspace} from "../../features/workspace/workspaceSlice.jsx";
 import {openModal} from "../../features/ui/uiSlice.jsx";
 import {clearCurrentProject} from "../../features/project/projectSlice.jsx";
+import WorkspaceStatsCards from "../../components/Workspaces/WorkspaceStatsCards.jsx";
 
 
 // Utility to pick a nice color for the workspace card
@@ -82,26 +83,11 @@ const WorkspacesPage = () => {
                 </div>
             </motion.div>
 
-            {/* Stats Cards */}
-            <motion.div
-                initial={{opacity: 0, y: 20}}
-                animate={{opacity: 1, y: 0}}
-                transition={{duration: 0.5, delay: 0.1}}
-                className="grid grid-cols-1 md:grid-cols-3 gap-4"
-            >
-                <div className="glass-card p-4 text-center">
-                    <div className="text-2xl font-bold text-white mb-1">{userWorkspaces.length}</div>
-                    <div className="text-white/70 text-sm">Total Workspaces</div>
-                </div>
-                <div className="glass-card p-4 text-center">
-                    <div className="text-2xl font-bold text-blue-400 mb-1">{ownedWorkspaces.length}</div>
-                    <div className="text-white/70 text-sm">Owned</div>
-                </div>
-                <div className="glass-card p-4 text-center">
-                    <div className="text-2xl font-bold text-green-400 mb-1">{memberWorkspaces.length}</div>
-                    <div className="text-white/70 text-sm">Member</div>
-                </div>
-            </motion.div>
+            <WorkspaceStatsCards
+                userWorkspaces={userWorkspaces}
+                ownedWorkspaces={ownedWorkspaces}
+                memberWorkspaces={memberWorkspaces}
+            />
 
             {isLoading && (
                 <motion.div

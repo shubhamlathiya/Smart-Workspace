@@ -6,14 +6,15 @@ import {fetchTasks, setFilters} from "../../features/task/taskSlice.jsx";
 import {openModal} from "../../features/ui/uiSlice.jsx";
 import KanbanBoardWrapper from "../../components/Tasks/KanbanBoardWrapper.jsx";
 import TaskDetailModal from "../../components/Tasks/TaskDetailModal.jsx";
-import { useSocket, useProjectSocket } from '../../hooks/useSocket';
+import {useSocket, useProjectSocket} from '../../hooks/useSocket';
+import TaskStatsCards from "../../components/Tasks/taskStatCards.jsx";
 
 const TasksPage = () => {
     const dispatch = useAppDispatch();
     const {tasks, isLoading, filters} = useAppSelector(state => state.task);
     const {user} = useAppSelector(state => state.auth);
     const {currentProject} = useAppSelector(state => state.project);
-    const { socketService } = useSocket();
+    const {socketService} = useSocket();
 
     const [viewMode, setViewMode] = useState('list'); // kanban, list, grid
     const [selectedTask, setSelectedTask] = useState(null);
@@ -124,37 +125,7 @@ const TasksPage = () => {
             </motion.div>
 
             {/* Stats Cards */}
-            <motion.div
-                initial={{opacity: 0, y: 20}}
-                animate={{opacity: 1, y: 0}}
-                transition={{duration: 0.5, delay: 0.1}}
-                className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4"
-            >
-                <div className="glass-card p-4 text-center">
-                    <div className="text-2xl font-bold text-white mb-1">{taskStats.total}</div>
-                    <div className="text-white/70 text-sm">Total</div>
-                </div>
-                <div className="glass-card p-4 text-center">
-                    <div className="text-2xl font-bold text-blue-400 mb-1">{taskStats.todo}</div>
-                    <div className="text-white/70 text-sm">To Do</div>
-                </div>
-                <div className="glass-card p-4 text-center">
-                    <div className="text-2xl font-bold text-yellow-400 mb-1">{taskStats.inProgress}</div>
-                    <div className="text-white/70 text-sm">In Progress</div>
-                </div>
-                <div className="glass-card p-4 text-center">
-                    <div className="text-2xl font-bold text-orange-400 mb-1">{taskStats.review}</div>
-                    <div className="text-white/70 text-sm">Review</div>
-                </div>
-                <div className="glass-card p-4 text-center">
-                    <div className="text-2xl font-bold text-green-400 mb-1">{taskStats.completed}</div>
-                    <div className="text-white/70 text-sm">Completed</div>
-                </div>
-                <div className="glass-card p-4 text-center">
-                    <div className="text-2xl font-bold text-red-400 mb-1">{taskStats.overdue}</div>
-                    <div className="text-white/70 text-sm">Overdue</div>
-                </div>
-            </motion.div>
+            <TaskStatsCards taskStats={taskStats}/>
 
             {/* Filters and View Toggle */}
             <motion.div
