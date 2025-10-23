@@ -166,13 +166,26 @@ const ProjectDetailPage = () => {
 
                 navigate('/projects');
             } catch (error) {
-                showErrorAlert('error', 'Failed', 'Unable to delete this project. Please try again.');
+                showErrorAlert('error', 'Failed', `${error} Unable to delete this project. Please try again.`);
             }
         }
     };
 
     const handleAddMember = () => {
         dispatch(openModal('inviteMember'));
+    };
+
+    const getUserRoleInProject = (currentProject) => {
+        if (!user || !currentProject.assignedMembers) return null;
+
+        // Check if current user is project owner
+        if (currentProject.createdBy === user._id) return 'lead';
+
+        const member = currentProject.assignedMembers.find(
+            (m) => m.user === user._id || m.user?._id === user._id
+        );
+
+        return member?.role || 'guest';
     };
 
     const handleRemoveMember = async (memberId) => {
@@ -328,7 +341,11 @@ const ProjectDetailPage = () => {
     // Task List Item Component
     const TaskListItem = ({task}) => (<div
         className="p-4 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 transition-all duration-200 cursor-pointer group"
-        onClick={() => handleTaskClick(task)}
+        onClick={
+            ['admin', 'lead', 'member'].includes(getUserRoleInProject(currentProject))
+                ? () => handleTaskClick(task)
+                : null
+        }
     >
         <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4 flex-1">
@@ -365,7 +382,11 @@ const ProjectDetailPage = () => {
     // Task Grid Item Component
     const TaskGridItem = ({task}) => (<div
         className="p-4 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 transition-all duration-200 cursor-pointer group"
-        onClick={() => handleTaskClick(task)}
+        onClick={
+            ['admin', 'lead', 'member'].includes(getUserRoleInProject(currentProject))
+                ? () => handleTaskClick(task)
+                : null
+        }
     >
         <div className="flex items-start justify-between mb-3">
             <h4 className="text-white font-semibold text-sm line-clamp-2 flex-1">{task.title}</h4>
@@ -633,12 +654,23 @@ const ProjectDetailPage = () => {
                             </button>
                         </div>
 
-                        <button
-                            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-cyan-700 transition-all duration-200"
-                            onClick={handleCreateTask}
-                        >
-                            Add Task
-                        </button>
+                        {(() => {
+                            const role = getUserRoleInProject(currentProject);
+                            return (
+                                <>
+                                    {/* Edit — visible to member or owner */}
+                                    {(role === 'member' || role === 'lead' || role === 'owner') && (
+                                        <button
+                                            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-cyan-700 transition-all duration-200"
+                                            onClick={handleCreateTask}
+                                        >
+                                            Add Task
+                                        </button>
+                                    )}
+                                </>
+                            );
+                        })()}
+
                     </div>
                 </div>
 
@@ -649,16 +681,53 @@ const ProjectDetailPage = () => {
                         <p className="text-white/70">Loading tasks...</p>
                     </div>
                 </div>) : tasks.length > 0 ? (<>
-                    {viewMode === 'kanban' ? (<KanbanBoardWrapper
-                        projectId={currentProject._id}
-                        onTaskClick={handleTaskClick}
-                        onAddTask={handleCreateTaskInColumn}
-                    />) : viewMode === 'list' ? (<div className="space-y-3">
-                        {tasks.map((task) => (<TaskListItem key={task._id} task={task}/>))}
-                    </div>) : (<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {tasks.map((task) => (<TaskGridItem key={task._id} task={task}/>))}
-                    </div>)}
-                </>) : (<div className="text-center py-12">
+                        {(() => {
+                            const role = getUserRoleInProject(currentProject);
+
+                            // Define permission check
+                            const canAccessKanban = role === 'member' || role === 'lead' || role === 'owner';
+
+                            return (
+                                <>
+                                    {/* Show content based on role and viewMode */}
+                                    {viewMode === 'kanban' ? (
+                                        canAccessKanban ? (
+                                            <KanbanBoardWrapper
+                                                projectId={currentProject._id}
+                                                onTaskClick={handleTaskClick}
+                                                onAddTask={handleCreateTaskInColumn}
+                                            />
+                                        ) : (
+                                            <div className="text-center py-12">
+                                                <div
+                                                    className="w-24 h-24 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                    <span className="text-3xl">🔒</span>
+                                                </div>
+                                                <h4 className="text-lg font-semibold text-white mb-2">Access
+                                                    Restricted</h4>
+                                                <p className="text-white/70">
+                                                    You don’t have permission to view the Kanban board.
+                                                </p>
+                                            </div>
+                                        )
+                                    ) : viewMode === 'list' ? (
+                                        <div className="space-y-3">
+                                            {tasks.map((task) => (
+                                                <TaskListItem key={task._id} task={task}/>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            {tasks.map((task) => (
+                                                <TaskGridItem key={task._id} task={task}/>
+                                            ))}
+                                        </div>
+                                    )}
+                                </>
+                            );
+                        })()}
+                    </>
+                ) : (<div className="text-center py-12">
                     <div
                         className="w-24 h-24 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-full flex items-center justify-center mx-auto mb-6">
                         <span className="text-4xl">📝</span>
@@ -673,7 +742,10 @@ const ProjectDetailPage = () => {
                         Create First Task
                     </button>
                 </div>)}
+
+
             </div>)}
+
 
             {/* Team Tab */}
             {activeTab === 'team' && (<div>

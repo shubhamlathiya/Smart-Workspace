@@ -495,8 +495,9 @@ router.put('/:id', auth, checkProjectAccess, [body('name').optional().trim().isL
  *       500:
  *         description: Server error
  */
-router.post('/:id/members', auth, checkProjectAccess, [body('email').isEmail().normalizeEmail().withMessage('Valid email is required'), body('role').optional().isIn(['lead', 'member', 'observer']).withMessage('Invalid role')], async (req, res) => {
+router.post('/:id/members', auth, checkProjectAccess, [body('email').isEmail().normalizeEmail().withMessage('Valid email is required'), body('role').optional().isIn(['lead', 'member', 'observer','guest']).withMessage('Invalid role')], async (req, res) => {
     try {
+        console.log(req.body)
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({
@@ -538,9 +539,9 @@ router.post('/:id/members', auth, checkProjectAccess, [body('email').isEmail().n
                     success: false, message: 'User is already assigned to this project.'
                 });
             }
-
+            console.log(user)
             await req.project.addMember(user._id, role);
-
+            console.log(req.project)
             if (!req.project.workspace.members.some(m => m.user.toString() === user._id.toString())) {
                 req.project.workspace.members.push({
                     user: user._id,

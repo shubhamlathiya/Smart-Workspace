@@ -3,10 +3,7 @@ import {motion} from 'framer-motion';
 import {useAppDispatch, useAppSelector} from '../../hooks/redux';
 import {useParams, useNavigate} from 'react-router-dom';
 import {
-    deleteWorkspace,
-    fetchWorkspaceById,
-    removeMember,
-    updateWorkspace
+    deleteWorkspace, fetchWorkspaceById, removeMember, updateWorkspace
 } from "../../features/workspace/workspaceSlice.jsx";
 import {openModal} from "../../features/ui/uiSlice.jsx";
 import Swal from "sweetalert2";
@@ -54,8 +51,7 @@ const WorkspaceDetailPage = () => {
             };
 
             await dispatch(updateWorkspace({
-                workspaceId: currentWorkspace._id,
-                updateData
+                workspaceId: currentWorkspace._id, updateData
             })).unwrap();
 
             setIsEditing(false);
@@ -76,19 +72,11 @@ const WorkspaceDetailPage = () => {
             try {
                 await dispatch(deleteWorkspace(currentWorkspace._id)).unwrap();
 
-                showSuccessAlert(
-                    'success',
-                    'Workspace Deleted',
-                    'The workspace has been successfully deleted.'
-                );
+                showSuccessAlert('success', 'Workspace Deleted', 'The workspace has been successfully deleted.');
 
                 navigate('/workspaces');
             } catch (e) {
-                showErrorAlert(
-                    'error',
-                    'Failed',
-                    'Unable to delete this workspace. Please try again.'
-                );
+                showErrorAlert('error', 'Failed', 'Unable to delete this workspace. Please try again.');
             }
         }
     };
@@ -99,11 +87,7 @@ const WorkspaceDetailPage = () => {
 
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+            year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
         });
     };
 
@@ -117,8 +101,7 @@ const WorkspaceDetailPage = () => {
         if (confirmed) {
             try {
                 await dispatch(removeMember({
-                    workspaceId: currentWorkspace._id,
-                    userId: memberId
+                    workspaceId: currentWorkspace._id, userId: memberId
                 })).unwrap();
 
                 showSuccessAlert('Member removed successfully');
@@ -131,20 +114,17 @@ const WorkspaceDetailPage = () => {
     const isOwner = currentWorkspace?.owner?._id === user?._id;
 
     if (isLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
+        return (<div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <div
                         className="w-12 h-12 border-t-2 border-blue-500 border-solid rounded-full animate-spin mx-auto mb-4"></div>
                     <p className="text-white/70">Loading workspace details...</p>
                 </div>
-            </div>
-        );
+            </div>);
     }
 
     if (error) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
+        return (<div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <div
                         className="w-24 h-24 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -159,16 +139,14 @@ const WorkspaceDetailPage = () => {
                         Back to Workspaces
                     </button>
                 </div>
-            </div>
-        );
+            </div>);
     }
 
     if (!currentWorkspace) {
         return null;
     }
 
-    return (
-        <div className="space-y-6">
+    return (<div className="space-y-6">
             {/* Header */}
             <motion.div
                 initial={{opacity: 0, y: 20}}
@@ -177,35 +155,26 @@ const WorkspaceDetailPage = () => {
             >
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                     <div className="flex-1">
-                        {isEditing ? (
-                            <input
+                        {isEditing ? (<input
                                 type="text"
                                 value={editData.name}
                                 onChange={(e) => setEditData({...editData, name: e.target.value})}
                                 className="w-full text-3xl font-bold bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
                                 placeholder="Workspace name"
-                            />
-                        ) : (
-                            <h1 className="text-3xl font-bold text-white mb-2">{currentWorkspace.name}</h1>
-                        )}
+                            />) : (<h1 className="text-3xl font-bold text-white mb-2">{currentWorkspace.name}</h1>)}
 
-                        {isEditing ? (
-                            <textarea
+                        {isEditing ? (<textarea
                                 value={editData.description}
                                 onChange={(e) => setEditData({...editData, description: e.target.value})}
                                 className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white/70 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                                 placeholder="Workspace description"
                                 rows="2"
-                            />
-                        ) : (
-                            <p className="text-white/70 text-lg">{currentWorkspace.description || 'No description provided'}</p>
-                        )}
+                            />) : (
+                            <p className="text-white/70 text-lg">{currentWorkspace.description || 'No description provided'}</p>)}
                     </div>
 
-                    {isOwner && (
-                        <div className="flex gap-3">
-                            {isEditing ? (
-                                <>
+                    {isOwner && (<div className="flex gap-3">
+                            {isEditing ? (<>
                                     <button
                                         onClick={handleSave}
                                         className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-200"
@@ -218,9 +187,7 @@ const WorkspaceDetailPage = () => {
                                     >
                                         Cancel
                                     </button>
-                                </>
-                            ) : (
-                                <>
+                                </>) : (<>
                                     <button
                                         onClick={() => setIsEditing(true)}
                                         className="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-cyan-700 transition-all duration-200"
@@ -233,10 +200,8 @@ const WorkspaceDetailPage = () => {
                                     >
                                         Invite Member
                                     </button>
-                                </>
-                            )}
-                        </div>
-                    )}
+                                </>)}
+                        </div>)}
                 </div>
             </motion.div>
 
@@ -248,20 +213,14 @@ const WorkspaceDetailPage = () => {
                 className="p-4"
             >
                 <div className="flex space-x-2 bg-white/10 backdrop-blur-md rounded-xl p-1 shadow-sm">
-                    {['overview', 'members', 'settings'].map((tab) => (
-                        <button
+                    {['overview', 'members', 'settings'].map((tab) => (<button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
                             className={`flex-1 py-2 px-5 rounded-lg text-sm font-semibold transition-all duration-200 text-center
-                    ${
-                                activeTab === tab
-                                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md'
-                                    : 'text-white/70 hover:text-white hover:bg-white/5'
-                            }`}
+                    ${activeTab === tab ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md' : 'text-white/70 hover:text-white hover:bg-white/5'}`}
                         >
                             {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                        </button>
-                    ))}
+                        </button>))}
                 </div>
             </motion.div>
 
@@ -273,8 +232,7 @@ const WorkspaceDetailPage = () => {
                 className=" p-6"
             >
                 {/* Overview Tab */}
-                {activeTab === 'overview' && (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {activeTab === 'overview' && (<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                         <WorkspaceOverview
                             currentWorkspace={currentWorkspace}
@@ -284,27 +242,22 @@ const WorkspaceDetailPage = () => {
                         />
 
                         <QuickStats currentWorkspace={currentWorkspace}/>
-                    </div>
-                )}
+                    </div>)}
 
                 {/* Members Tab */}
-                {activeTab === 'members' && (
-                    <div>
+                {activeTab === 'members' && (<div>
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-xl font-bold text-white">Workspace Members</h3>
-                            {isOwner && (
-                                <button
+                            {isOwner && (<button
                                     onClick={handleInviteMember}
                                     className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-200"
                                 >
                                     Invite Members
-                                </button>
-                            )}
+                                </button>)}
                         </div>
 
                         <div className="space-y-4">
-                            {currentWorkspace.members?.map((member) => (
-                                <div
+                            {currentWorkspace.members?.map((member) => (<div
                                     key={member.user?._id}
                                     className="glass-card p-4 flex items-center justify-between"
                                 >
@@ -325,36 +278,27 @@ const WorkspaceDetailPage = () => {
                                     </div>
 
                                     <div className="flex items-center space-x-4">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${
-                        member.role === 'admin' ? 'bg-purple-500/20 text-purple-400' :
-                            member.role === 'owner' ? 'bg-blue-500/20 text-blue-400' :
-                                'bg-green-500/20 text-green-400'
-                    }`}>
+                    <span
+                        className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${member.role === 'admin' ? 'bg-purple-500/20 text-purple-400' : member.role === 'owner' ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400'}`}>
                       {member.role}
                     </span>
 
-                                        {isOwner && member.role !== 'owner' && (
-                                            <button
+                                        {isOwner && member.role !== 'admin' && (<button
                                                 onClick={() => handleRemoveMember(member.user?._id)}
                                                 className="px-3 py-1 bg-red-500/20 text-red-400 rounded text-sm hover:bg-red-500/30 transition-colors"
                                             >
                                                 Remove
-                                            </button>
-                                        )}
+                                            </button>)}
                                     </div>
-                                </div>
-                            ))}
+                                </div>))}
                         </div>
-                    </div>
-                )}
+                    </div>)}
 
                 {/* Settings Tab */}
-                {activeTab === 'settings' && (
-                    <div className="space-y-6">
+                {activeTab === 'settings' && (<div className="space-y-6">
                         <h3 className="text-xl font-bold text-white">Workspace Settings</h3>
 
-                        {isOwner ? (
-                            <div className="space-y-6">
+                        {isOwner ? (<div className="space-y-6">
                                 {/* Danger Zone */}
                                 <div className="glass-card p-6 border border-red-500/20">
                                     <h4 className="text-red-400 font-semibold mb-4">Danger Zone</h4>
@@ -368,9 +312,7 @@ const WorkspaceDetailPage = () => {
                                         Delete Workspace
                                     </button>
                                 </div>
-                            </div>
-                        ) : (
-                            <div className="text-center py-8">
+                            </div>) : (<div className="text-center py-8">
                                 <div
                                     className="w-16 h-16 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
                                     <span className="text-2xl">🔒</span>
@@ -379,13 +321,10 @@ const WorkspaceDetailPage = () => {
                                 <p className="text-white/70">
                                     Only workspace owners can modify workspace settings.
                                 </p>
-                            </div>
-                        )}
-                    </div>
-                )}
+                            </div>)}
+                    </div>)}
             </motion.div>
-        </div>
-    );
+        </div>);
 };
 
 export default WorkspaceDetailPage;

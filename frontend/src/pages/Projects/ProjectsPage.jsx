@@ -29,6 +29,20 @@ const ProjectsPage = () => {
         dispatch(openModal('createProject'));
     };
 
+    const getUserRoleInProject = (project) => {
+        if (!user || !project.assignedMembers) return null;
+
+        // Check if current user is project owner
+        if (project.createdBy === user._id) return 'lead';
+
+        const member = project.assignedMembers.find(
+            (m) => m.user === user._id || m.user?._id === user._id
+        );
+
+        return member?.role || 'guest';
+    };
+
+
     const handleDeleteProject = async (projectId) => {
         const confirmed = await showConfirmAlert({
             title: 'Delete Project?',
@@ -279,26 +293,48 @@ const ProjectsPage = () => {
                                         </div>
                                     </div>
 
-                                    {/* Actions */}
                                     <div className="flex gap-2 mt-4 pt-4 border-t border-white/10">
-                                        <button
-                                            onClick={() => handleViewProject(project._id)}
-                                            className="flex-1 py-2 bg-white/10 text-white text-sm rounded hover:bg-white/20 transition-colors"
-                                        >
-                                            View
-                                        </button>
-                                        <button
-                                            onClick={() => handleEditProject(project)}
-                                            className="flex-1 py-2 bg-blue-500/20 text-blue-400 text-sm rounded hover:bg-blue-500/30 transition-colors"
-                                        >
-                                            Edit
-                                        </button>
-                                        <button
-                                            onClick={() => handleDeleteProject(project._id)}
-                                            className="flex-1 py-2 bg-red-500/20 text-red-400 text-sm rounded hover:bg-red-500/30 transition-colors"
-                                        >
-                                            Delete
-                                        </button>
+                                        {(() => {
+                                            const role = getUserRoleInProject(project);
+
+                                            return (
+                                                <>
+                                                    {/* View — always visible */}
+                                                    <button
+                                                        onClick={() => handleViewProject(project._id)}
+                                                        className="flex-1 py-2 bg-white/10 text-white text-sm rounded hover:bg-white/20 transition-colors"
+                                                    >
+                                                        View
+                                                    </button>
+
+                                                    {/* Edit — visible to member or owner */}
+                                                    {(role === 'member' || role === 'lead' || role === 'owner') && (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleEditProject(project);
+                                                            }}
+                                                            className="flex-1 py-2 bg-blue-500/20 text-blue-400 text-sm rounded hover:bg-blue-500/30 transition-colors"
+                                                        >
+                                                            Edit
+                                                        </button>
+                                                    )}
+
+                                                    {/* Delete — only owner */}
+                                                    {role === 'lead' || role === 'owner' && (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDeleteProject(project._id);
+                                                            }}
+                                                            className="flex-1 py-2 bg-red-500/20 text-red-400 text-sm rounded hover:bg-red-500/30 transition-colors"
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    )}
+                                                </>
+                                            );
+                                        })()}
                                     </div>
                                 </div>
                             </div>
