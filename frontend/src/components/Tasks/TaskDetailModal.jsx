@@ -13,6 +13,7 @@ import {
 } from '../../hooks/useSocket';
 import {openModal} from '../../features/ui/uiSlice';
 import {showConfirmAlert, showErrorAlert, showSuccessAlert} from "../../utils/alerts.jsx";
+import {encryptComment, decryptComment} from '../../utils/encryption';
 
 const TaskDetailModal = ({task, isOpen, onClose}) => {
     const dispatch = useAppDispatch();
@@ -55,24 +56,27 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
         return () => {
             socketService.off('task_updated', handleTaskUpdate);
         };
-    }, [socketService, task, user?.name]);
+    }, [socketService, task]);
 
     // Handle real-time comment updates
     const handleNewComment = useCallback((data) => {
         if (data.taskId === task?._id) {
-            setRealTimeTask(prev => ({
-                ...prev, comments: [...(prev.comments || []), {
-                    _id: data.commentId || Date.now().toString(),
-                    content: data.content,
-                    user: { name: user?.name || "Unknown" },
-                    createdAt: new Date().toISOString(),
-                    isEdited: false
-                }]
-            }));
-
-
+            setRealTimeTask(prev => {
+                const exists = prev.comments?.some(c => c._id === data.commentId);
+                if (exists) return prev; // Prevent duplicates
+                return {
+                    ...prev,
+                    comments: [...(prev.comments || []), {
+                        _id: data.commentId || Date.now().toString(),
+                        content: data.content,
+                        user: {name: data.author || "Unknown"},
+                        createdAt: new Date().toISOString(),
+                        isEdited: false
+                    }]
+                };
+            });
         }
-    }, [task?._id, user?.name]);
+    }, [task?._id]);
 
     useTaskCommentSocket(task?.project?._id, task?._id, handleNewComment);
 
@@ -85,8 +89,6 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
                 // Refresh task data to get updated attachments
                 // In a real app, you'd want to update the specific file
                 setRealTimeTask(prev => ({...prev}));
-
-
             }
         };
 
@@ -301,39 +303,27 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
 
     const handleAddComment = async () => {
         if (!newComment.trim()) return;
-
         try {
+            const encryptedContent = encryptComment(newComment.trim());
             const result = await dispatch(addTaskComment({
-                taskId: realTimeTask._id, content: newComment.trim()
+                taskId: realTimeTask._id, content: encryptedContent
             })).unwrap();
-
-
-            console.log('Comment result:', result); // Debug log to see the actual structure
-
-            // The API returns the updated task with comments array
-            // Find the newly added comment (it should be the last one)
-            const updatedTask = result.data || result;
-            const comments = updatedTask.comments || [];
-            const newCommentData = comments[comments.length - 1]; // Get the last comment
-
-            // Emit real-time comment
-            if (socketService && newCommentData) {
+            const addedComment = (result.data || result).comments?.slice(-1)[0];
+            if (socketService && addedComment) {
                 socketService.emitNewComment({
                     projectId: realTimeTask.project._id,
                     taskId: realTimeTask._id,
-                    commentId: newCommentData._id,
-                    content: newComment.trim(),
+                    commentId: addedComment._id,
+                    content: encryptedContent,
                     author: user.name,
                     userId: user._id,
                     timestamp: new Date(),
                 });
             }
-
             setNewComment('');
             stopTyping();
-        } catch (error) {
-            console.error('Failed to add comment:', error);
-            showErrorAlert('error', 'Comment Failed', 'Failed to add comment. Please try again.');
+        } catch (err) {
+            showErrorAlert('error', 'Comment Failed', `${err} Failed to add comment`);
         }
     };
 
@@ -470,10 +460,9 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
                                     type="text"
                                     value={editData.title}
                                     onChange={(e) => setEditData({...editData, title: e.target.value})}
-                                    className="w-full text-xl font-semibold bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/30"
+                                    className="..."
                                     placeholder="Task title"
-                                />) : (
-                                    <h3 className="text-xl font-semibold text-white">{realTimeTask.title}</h3>)}
+                                />) : (<h3 className="text-xl font-semibold text-white">{realTimeTask.title}</h3>)}
                             </div>
 
                             {/* Task Description */}
@@ -589,8 +578,8 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
 
                                 {/* Comments List */}
                                 <div className="space-y-4 mb-6">
-                                    {realTimeTask.comments?.map((comment) => (
-                                        <div key={comment._id} className="glass-card p-4">
+                                    {realTimeTask.comments?.map((comment, idx) => (
+                                        <div key={comment._id || idx} className="glass-card p-4">
                                             <div className="flex items-start justify-between">
                                                 <div className="flex items-center space-x-3">
                                                     <div
@@ -651,10 +640,15 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
                                                         Cancel
                                                     </button>
                                                 </div>
-                                            </div>) : (
-                                                <p className="mt-3 text-white/80 whitespace-pre-wrap">
-                                                    {comment.content}
-                                                </p>)}
+                                            </div>) : (<p className="mt-3 text-white/80 whitespace-pre-wrap">
+                                                {(() => {
+                                                    try {
+                                                        return decryptComment(comment.content);
+                                                    } catch {
+                                                        return comment.content || 'Decryption failed';
+                                                    }
+                                                })()}
+                                            </p>)}
                                         </div>))}
                                 </div>
 
