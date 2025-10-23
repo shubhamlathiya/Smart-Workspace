@@ -102,8 +102,7 @@ const TasksPage = () => {
         }).length,
     };
 
-    return (
-        <div className="space-y-6">
+    return (<div className="space-y-6">
             {/* Header */}
             <motion.div
                 initial={{opacity: 0, y: 20}}
@@ -139,27 +138,21 @@ const TasksPage = () => {
                     <div className="flex bg-white/10 rounded-lg p-1">
                         <button
                             onClick={() => setViewMode('kanban')}
-                            className={`px-3 py-2 rounded flex items-center space-x-2 transition-colors ${
-                                viewMode === 'kanban' ? 'bg-white/20 text-white' : 'text-white/70 hover:text-white'
-                            }`}
+                            className={`px-3 py-2 rounded flex items-center space-x-2 transition-colors ${viewMode === 'kanban' ? 'bg-white/20 text-white' : 'text-white/70 hover:text-white'}`}
                         >
                             <span>📊</span>
                             <span className="text-sm">Kanban</span>
                         </button>
                         <button
                             onClick={() => setViewMode('list')}
-                            className={`px-3 py-2 rounded flex items-center space-x-2 transition-colors ${
-                                viewMode === 'list' ? 'bg-white/20 text-white' : 'text-white/70 hover:text-white'
-                            }`}
+                            className={`px-3 py-2 rounded flex items-center space-x-2 transition-colors ${viewMode === 'list' ? 'bg-white/20 text-white' : 'text-white/70 hover:text-white'}`}
                         >
                             <span>📋</span>
                             <span className="text-sm">List</span>
                         </button>
                         <button
                             onClick={() => setViewMode('grid')}
-                            className={`px-3 py-2 rounded flex items-center space-x-2 transition-colors ${
-                                viewMode === 'grid' ? 'bg-white/20 text-white' : 'text-white/70 hover:text-white'
-                            }`}
+                            className={`px-3 py-2 rounded flex items-center space-x-2 transition-colors ${viewMode === 'grid' ? 'bg-white/20 text-white' : 'text-white/70 hover:text-white'}`}
                         >
                             <span>⏹️</span>
                             <span className="text-sm">Grid</span>
@@ -212,27 +205,19 @@ const TasksPage = () => {
                 transition={{duration: 0.5, delay: 0.3}}
                 className="glass-card p-6"
             >
-                {isLoading ? (
-                    <div className="flex items-center justify-center h-64">
+                {isLoading ? (<div className="flex items-center justify-center h-64">
                         <div className="text-center">
                             <div
                                 className="w-12 h-12 border-t-2 border-purple-500 border-solid rounded-full animate-spin mx-auto mb-4"></div>
                             <p className="text-white/70">Loading tasks...</p>
                         </div>
-                    </div>
-                ) : viewMode === 'kanban' ? (
-                    <KanbanBoardWrapper
+                    </div>) : viewMode === 'kanban' ? (<KanbanBoardWrapper
                         projectId={currentProject?._id}
                         onTaskClick={handleTaskClick}
                         onAddTask={handleCreateTaskInColumn}
-                    />
-                ) : viewMode === 'list' ? (
-                    <div className="space-y-3">
-                        {tasks.length > 0 ? (
-                            tasks.map((task) => (
-                                <TaskListItem key={task._id} task={task} onClick={() => handleTaskClick(task)}/>
-                            ))
-                        ) : (
+                    />) : viewMode === 'list' ? (<div className="space-y-3">
+                        {tasks.length > 0 ? (tasks.map((task) => (
+                                <TaskListItem key={task._id} task={task} onClick={() => handleTaskClick(task)}/>))) : (
                             <div className="text-center py-8">
                                 <p className="text-white/70">No tasks found</p>
                                 <button
@@ -241,16 +226,10 @@ const TasksPage = () => {
                                 >
                                     Create your first task
                                 </button>
-                            </div>
-                        )}
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {tasks.length > 0 ? (
-                            tasks.map((task) => (
-                                <TaskGridItem key={task._id} task={task} onClick={() => handleTaskClick(task)}/>
-                            ))
-                        ) : (
+                            </div>)}
+                    </div>) : (<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {tasks.length > 0 ? (tasks.map((task) => (
+                                <TaskGridItem key={task._id} task={task} onClick={() => handleTaskClick(task)}/>))) : (
                             <div className="col-span-full text-center py-8">
                                 <p className="text-white/70">No tasks found</p>
                                 <button
@@ -259,10 +238,8 @@ const TasksPage = () => {
                                 >
                                     Create your first task
                                 </button>
-                            </div>
-                        )}
-                    </div>
-                )}
+                            </div>)}
+                    </div>)}
             </motion.div>
 
             {/* Task Detail Modal */}
@@ -271,69 +248,52 @@ const TasksPage = () => {
                 isOpen={isTaskModalOpen}
                 onClose={handleCloseTaskModal}
             />
-        </div>
-    );
+        </div>);
 };
 
 // Simple list and grid item components
-const TaskListItem = ({task, onClick}) => (
-    <div
-        className="p-4 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 transition-all duration-200 cursor-pointer hover:bg-white/10"
+const TaskListItem = ({task, onClick}) => (<div
         onClick={onClick}
+        className="p-4 bg-gradient-to-r from-white/5 to-white/2 rounded-xl border border-white/10 hover:border-white/20 hover:shadow-lg transition-all duration-200 cursor-pointer"
     >
-        <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-                <h3 className="text-white font-semibold">{task.title}</h3>
-                <span className={`px-2 py-1 rounded-full text-xs ${
-                    task.priority === 'high' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
-                        task.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
-                            task.priority === 'urgent' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
-                                'bg-green-500/20 text-green-400 border border-green-500/30'
-                }`}>
+        <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center space-x-3 overflow-hidden">
+                <h3 className="text-white font-semibold truncate">{task.title}</h3>
+                <span
+                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${task.priority === 'high' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : task.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : task.priority === 'urgent' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-green-500/20 text-green-400 border border-green-500/30'}`}>
                     {task.priority}
                 </span>
-                <span className={`px-2 py-1 rounded-full text-xs ${
-                    task.status === 'completed' ? 'bg-green-500/20 text-green-400' :
-                        task.status === 'in-progress' ? 'bg-blue-500/20 text-blue-400' :
-                            task.status === 'review' ? 'bg-yellow-500/20 text-yellow-400' :
-                                'bg-gray-500/20 text-gray-400'
-                }`}>
-                    {task.status}
+                <span
+                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${task.status === 'completed' ? 'bg-green-500/20 text-green-400' : task.status === 'in-progress' ? 'bg-blue-500/20 text-blue-400' : task.status === 'review' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-gray-500/20 text-gray-400'}`}>
+                    {task.status.replace('-', ' ')}
                 </span>
             </div>
             <div className="text-white/70 text-sm">
                 {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date'}
             </div>
         </div>
-        {task.description && (
-            <p className="text-white/60 text-sm mt-2 line-clamp-1">{task.description}</p>
-        )}
-    </div>
-);
+        {task.description && (<p className="text-white/60 text-sm line-clamp-2">{task.description}</p>)}
+    </div>);
 
-const TaskGridItem = ({task, onClick}) => (
-    <div
-        className="p-4 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 transition-all duration-200 cursor-pointer hover:bg-white/10"
+
+const TaskGridItem = ({task, onClick}) => (<div
         onClick={onClick}
+        className="p-4 bg-gradient-to-b from-white/5 to-white/2 rounded-xl border border-white/10 hover:border-white/20 hover:shadow-lg transition-all duration-200 cursor-pointer flex flex-col justify-between h-full"
     >
-        <h3 className="text-white font-semibold mb-2 line-clamp-1">{task.title}</h3>
-        {task.description && (
-            <p className="text-white/70 text-sm mb-3 line-clamp-2">{task.description}</p>
-        )}
-        <div className="flex justify-between items-center">
-            <span className={`px-2 py-1 rounded-full text-xs ${
-                task.priority === 'high' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
-                    task.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
-                        task.priority === 'urgent' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
-                            'bg-green-500/20 text-green-400 border border-green-500/30'
-            }`}>
+        <div>
+            <h3 className="text-white font-semibold mb-2 truncate">{task.title}</h3>
+            {task.description && (<p className="text-white/70 text-sm mb-3 line-clamp-3">{task.description}</p>)}
+        </div>
+        <div className="flex justify-between items-center mt-2">
+            <span
+                className={`px-2 py-1 rounded-full text-xs font-medium ${task.priority === 'high' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : task.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : task.priority === 'urgent' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-green-500/20 text-green-400 border border-green-500/30'}`}>
                 {task.priority}
             </span>
             <span className="text-white/70 text-xs">
                 {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date'}
             </span>
         </div>
-    </div>
-);
+    </div>);
+
 
 export default TasksPage;

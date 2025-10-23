@@ -240,45 +240,57 @@ const DashboardPage = () => {
             {/* Task Status Overview */}
             {stats.totalTasks > 0 && (
                 <motion.div
-                    initial={{opacity: 0, y: 20}}
-                    animate={{opacity: 1, y: 0}}
-                    transition={{duration: 0.5, delay: 0.5}}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.5 }}
                     className="glass-card p-6"
                 >
                     <h3 className="text-xl font-bold text-white mb-6">Task Overview</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {/* To Do */}
-                        <div className="text-center p-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
-                            <div className="text-2xl font-bold text-blue-300 mb-1">{stats.tasksByStatus.todo}</div>
-                            <div className="text-blue-200 text-sm font-medium">To Do</div>
-                            <div className="w-8 h-0.5 bg-blue-400/50 rounded-full mx-auto mt-2"></div>
-                        </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                        {[
+                            { label: 'To Do', count: stats.tasksByStatus.todo, color: 'blue' },
+                            { label: 'In Progress', count: stats.tasksByStatus.inProgress, color: 'amber' },
+                            { label: 'In Review', count: stats.tasksByStatus.review, color: 'purple' },
+                            { label: 'Completed', count: stats.tasksByStatus.completed, color: 'emerald' },
+                        ].map((status) => {
+                            const percentage = stats.totalTasks
+                                ? Math.round((status.count / stats.totalTasks) * 100)
+                                : 0;
 
-                        {/* In Progress */}
-                        <div className="text-center p-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
-                            <div
-                                className="text-2xl font-bold text-amber-300 mb-1">{stats.tasksByStatus.inProgress}</div>
-                            <div className="text-amber-200 text-sm font-medium">In Progress</div>
-                            <div className="w-8 h-0.5 bg-amber-400/50 rounded-full mx-auto mt-2"></div>
-                        </div>
+                            return (
+                                <div
+                                    key={status.label}
+                                    className="p-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md hover:scale-105 transform transition-all duration-200 cursor-pointer flex flex-col justify-between"
+                                >
+                                    {/* Status Count */}
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className={`text-3xl font-bold text-${status.color}-300`}>
+                                            {status.count}
+                                        </div>
+                                        <div className={`text-sm font-medium text-${status.color}-200`}>
+                                            {status.label}
+                                        </div>
+                                    </div>
 
-                        {/* Review */}
-                        <div className="text-center p-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
-                            <div className="text-2xl font-bold text-purple-300 mb-1">{stats.tasksByStatus.review}</div>
-                            <div className="text-purple-200 text-sm font-medium">In Review</div>
-                            <div className="w-8 h-0.5 bg-purple-400/50 rounded-full mx-auto mt-2"></div>
-                        </div>
+                                    {/* Progress Bar */}
+                                    <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden mt-auto">
+                                        <div
+                                            className={`h-full rounded-full bg-${status.color}-400 transition-all duration-500`}
+                                            style={{ width: `${percentage}%` }}
+                                        ></div>
+                                    </div>
 
-                        {/* Completed */}
-                        <div className="text-center p-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md">
-                            <div
-                                className="text-2xl font-bold text-emerald-300 mb-1">{stats.tasksByStatus.completed}</div>
-                            <div className="text-emerald-200 text-sm font-medium">Completed</div>
-                            <div className="w-8 h-0.5 bg-emerald-400/50 rounded-full mx-auto mt-2"></div>
-                        </div>
+                                    {/* Percentage Label */}
+                                    <div className="text-xs text-white/50 mt-2 text-right">
+                                        {percentage}% of total tasks
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 </motion.div>
             )}
+
             {/* Main content grid */}
             {hasData ? (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
