@@ -469,16 +469,23 @@ const ProjectDetailPage = () => {
             initial={{opacity: 0, y: 20}}
             animate={{opacity: 1, y: 0}}
             transition={{duration: 0.5, delay: 0.2}}
-            className=" p-4"
+            className="p-4"
         >
-            <div className="flex space-x-1 bg-white/10 rounded-lg p-1">
-                {['overview', 'tasks', 'team', 'settings'].map((tab) => (<button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 ${activeTab === tab ? 'bg-white/20 text-white' : 'text-white/70 hover:text-white hover:bg-white/5'}`}
-                >
-                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                </button>))}
+            <div className="flex space-x-2 bg-white/10 backdrop-blur-md rounded-xl p-1 shadow-sm">
+                {['overview', 'tasks', 'team', 'settings'].map((tab) => (
+                    <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={`flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all duration-200 
+                    ${
+                            activeTab === tab
+                                ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md'
+                                : 'text-white/70 hover:text-white hover:bg-white/5'
+                        }`}
+                    >
+                        {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    </button>
+                ))}
             </div>
         </motion.div>
 
@@ -512,7 +519,8 @@ const ProjectDetailPage = () => {
                                             <option value="high">High</option>
                                         </select>
                                     ) : (
-                                        <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getPriorityColor(currentProject.priority)}`}>
+                                        <span
+                                            className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getPriorityColor(currentProject.priority)}`}>
               {getPriorityText(currentProject.priority)}
             </span>
                                     )}
@@ -549,7 +557,8 @@ const ProjectDetailPage = () => {
                                 {/* Workspace */}
                                 {currentProject.workspace && (
                                     <div className="glass-card p-4 md:col-span-2">
-                                        <label className="block text-sm font-medium text-white/70 mb-2">Workspace</label>
+                                        <label
+                                            className="block text-sm font-medium text-white/70 mb-2">Workspace</label>
                                         <p className="text-white font-semibold">{currentProject.workspace.name}</p>
                                     </div>
                                 )}
@@ -564,7 +573,8 @@ const ProjectDetailPage = () => {
                                     onClick={() => setActiveTab('tasks')}
                                     className="glass-card w-full p-4 flex items-center space-x-4 hover:shadow-lg transition-shadow duration-200"
                                 >
-                                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-full flex items-center justify-center text-lg">
+                                    <div
+                                        className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-full flex items-center justify-center text-lg">
                                         ➕
                                     </div>
                                     <div className="text-left">
@@ -577,7 +587,8 @@ const ProjectDetailPage = () => {
                                     onClick={handleAddMember}
                                     className="glass-card w-full p-4 flex items-center space-x-4 hover:shadow-lg transition-shadow duration-200"
                                 >
-                                    <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-lg">
+                                    <div
+                                        className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-lg">
                                         👥
                                     </div>
                                     <div className="text-left">
@@ -687,7 +698,8 @@ const ProjectDetailPage = () => {
                             >
                                 {/* Member Info */}
                                 <div className="flex items-center space-x-4 mb-4">
-                                    <div className="w-14 h-14 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full flex items-center justify-center text-xl font-bold text-white">
+                                    <div
+                                        className="w-14 h-14 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full flex items-center justify-center text-xl font-bold text-white">
                                         {member.user.name ? member.user.name.charAt(0).toUpperCase() : 'U'}
                                     </div>
                                     <div className="flex flex-col">

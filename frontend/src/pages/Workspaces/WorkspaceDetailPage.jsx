@@ -242,19 +242,20 @@ const WorkspaceDetailPage = () => {
 
             {/* Navigation Tabs */}
             <motion.div
-                initial={{opacity: 0, y: 20}}
-                animate={{opacity: 1, y: 0}}
-                transition={{duration: 0.5, delay: 0.1}}
-                className=" p-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="p-4"
             >
-                <div className="flex space-x-1 bg-white/10 rounded-lg p-1">
+                <div className="flex space-x-2 bg-white/10 backdrop-blur-md rounded-xl p-1 shadow-sm">
                     {['overview', 'members', 'settings'].map((tab) => (
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
-                            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 ${
+                            className={`flex-1 py-2 px-5 rounded-lg text-sm font-semibold transition-all duration-200 text-center
+                    ${
                                 activeTab === tab
-                                    ? 'bg-white/20 text-white'
+                                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md'
                                     : 'text-white/70 hover:text-white hover:bg-white/5'
                             }`}
                         >

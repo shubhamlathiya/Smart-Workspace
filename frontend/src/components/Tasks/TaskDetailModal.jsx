@@ -31,6 +31,7 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
     const [showAssignees, setShowAssignees] = useState(false);
     const [dragOver, setDragOver] = useState(false);
     const [realTimeTask, setRealTimeTask] = useState(task);
+    const [showAllComments, setShowAllComments] = useState(false);
 
     const commentInputRef = useRef(null);
     const fileInputRef = useRef(null);
@@ -599,79 +600,104 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
 
                                 {/* Comments List */}
                                 <div className="space-y-4 mb-6">
-                                    {realTimeTask.comments?.map((comment, idx) => (
-                                        <div key={comment._id || idx} className="glass-card p-4">
-                                            <div className="flex items-start justify-between">
-                                                <div className="flex items-center space-x-3">
-                                                    <div
-                                                        className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                                                                <span className="text-white text-sm font-semibold">
-                                                                    {comment.user?.name?.charAt(0).toUpperCase() || 'U'}
-                                                                </span>
+                                    {realTimeTask.comments && realTimeTask.comments.length > 0 ? (
+                                        (showAllComments ? realTimeTask.comments : realTimeTask.comments.slice(-4)).map((comment, idx) => (
+                                            <div key={comment._id || idx} className="glass-card p-4">
+                                                <div className="flex items-start justify-between">
+                                                    <div className="flex items-center space-x-3">
+                                                        <div
+                                                            className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                <span className="text-white text-sm font-semibold">
+                                    {comment.user?.name?.charAt(0).toUpperCase() || 'U'}
+                                </span>
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-medium text-white">{comment.user?.name || 'Unknown User'}</p>
+                                                            <p className="text-white/70 text-sm">
+                                                                {new Date(comment.createdAt).toLocaleString()}
+                                                                {comment.isEdited && ' (edited)'}
+                                                            </p>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <p className="font-medium text-white">{comment.user?.name || 'Unknown User'}</p>
-                                                        <p className="text-white/70 text-sm">
-                                                            {new Date(comment.createdAt).toLocaleString()}
-                                                            {comment.isEdited && ' (edited)'}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                {comment.user?._id === user._id && (
-                                                    <div className="flex items-center space-x-2">
-                                                        <button
-                                                            onClick={() => {
-                                                                setEditingComment(comment._id);
-                                                                setCommentText(comment.content);
-                                                            }}
-                                                            className="p-1 hover:bg-white/10 rounded"
-                                                        >
-                                                            <Edit3 className="w-4 h-4 text-white/70"/>
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDeleteComment(comment._id)}
-                                                            className="p-1 hover:bg-white/10 rounded"
-                                                        >
-                                                            <Trash2 className="w-4 h-4 text-red-400"/>
-                                                        </button>
-                                                    </div>)}
-                                            </div>
 
-                                            {editingComment === comment._id ? (<div className="mt-3 space-y-2">
-                                                            <textarea
-                                                                value={commentText}
-                                                                onChange={(e) => setCommentText(e.target.value)}
-                                                                className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/30"
-                                                                rows="3"
-                                                            />
-                                                <div className="flex space-x-2">
-                                                    <button
-                                                        onClick={() => handleUpdateComment(comment._id)}
-                                                        className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-                                                    >
-                                                        Save
-                                                    </button>
-                                                    <button
-                                                        onClick={() => {
-                                                            setEditingComment(null);
-                                                            setCommentText('');
-                                                        }}
-                                                        className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700"
-                                                    >
-                                                        Cancel
-                                                    </button>
+                                                    {comment.user?._id === user._id && (
+                                                        <div className="flex items-center space-x-2">
+                                                            <button
+                                                                onClick={() => {
+                                                                    setEditingComment(comment._id);
+                                                                    setCommentText(comment.content);
+                                                                }}
+                                                                className="p-1 hover:bg-white/10 rounded"
+                                                            >
+                                                                <Edit3 className="w-4 h-4 text-white/70"/>
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteComment(comment._id)}
+                                                                className="p-1 hover:bg-white/10 rounded"
+                                                            >
+                                                                <Trash2 className="w-4 h-4 text-red-400"/>
+                                                            </button>
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            </div>) : (<p className="mt-3 text-white/80 whitespace-pre-wrap">
-                                                {(() => {
-                                                    try {
-                                                        return decryptComment(comment.content);
-                                                    } catch {
-                                                        return comment.content || 'Decryption failed';
-                                                    }
-                                                })()}
-                                            </p>)}
-                                        </div>))}
+
+                                                {editingComment === comment._id ? (
+                                                    <div className="mt-3 space-y-2">
+                            <textarea
+                                value={commentText}
+                                onChange={(e) => setCommentText(e.target.value)}
+                                className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/30"
+                                rows="3"
+                            />
+                                                        <div className="flex space-x-2">
+                                                            <button
+                                                                onClick={() => handleUpdateComment(comment._id)}
+                                                                className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                                                            >
+                                                                Save
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    setEditingComment(null);
+                                                                    setCommentText('');
+                                                                }}
+                                                                className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700"
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <p className="mt-3 text-white/80 whitespace-pre-wrap">
+                                                        {(() => {
+                                                            try {
+                                                                return decryptComment(comment.content);
+                                                            } catch {
+                                                                return comment.content || 'Decryption failed';
+                                                            }
+                                                        })()}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-8">
+                                            <p className="text-white/50">No comments yet</p>
+                                        </div>
+                                    )}
                                 </div>
+
+                                {/* Toggle See All Comments */}
+                                {realTimeTask.comments && realTimeTask.comments.length > 4 && (
+                                    <div className="text-center">
+                                        <button
+                                            onClick={() => setShowAllComments(!showAllComments)}
+                                            className="text-blue-400 text-sm hover:text-blue-300 transition-colors"
+                                        >
+                                            {showAllComments ? 'Show Less' : `See All Comments (${realTimeTask.comments.length})`}
+                                        </button>
+                                    </div>
+                                )}
 
                                 {/* Add Comment */}
                                 <div className="glass-card p-4">
