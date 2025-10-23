@@ -9,7 +9,7 @@ import {
 } from '../../features/task/taskSlice.jsx';
 import {uploadTaskFile, deleteTaskFile, downloadFile} from '../../features/upload/uploadSlice';
 import {
-    useSocket, useProjectSocket, useTaskTypingIndicator, useTaskCommentSocket
+    useSocket, useProjectSocket, useTaskTypingIndicator, useTaskCommentSocket, useTaskFileSocket
 } from '../../hooks/useSocket';
 import {openModal} from '../../features/ui/uiSlice';
 import {showConfirmAlert, showErrorAlert, showSuccessAlert} from "../../utils/alerts.jsx";
@@ -60,25 +60,65 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
 
     // Handle real-time comment updates
     const handleNewComment = useCallback((data) => {
-        if (data.taskId === task?._id) {
-            setRealTimeTask(prev => {
-                const exists = prev.comments?.some(c => c._id === data.commentId);
-                if (exists) return prev; // Prevent duplicates
-                return {
-                    ...prev,
-                    comments: [...(prev.comments || []), {
-                        _id: data.commentId || Date.now().toString(),
-                        content: data.content,
-                        user: {name: data.author || "Unknown"},
-                        createdAt: new Date().toISOString(),
-                        isEdited: false
-                    }]
+        if (data.taskId !== task?._id) return;
+
+        setRealTimeTask(prev => {
+            const existingIndex = prev.comments?.findIndex(c => c._id === data.commentId);
+
+            if (existingIndex !== undefined && existingIndex > -1) {
+                // Update the existing comment
+                const updatedComments = [...prev.comments];
+                updatedComments[existingIndex] = {
+                    ...updatedComments[existingIndex],
+                    content: data.content,
+                    user: {name: data.author || "Unknown", _id: data.userId},
+                    createdAt: new Date().toISOString(),
+                    isEdited: data.isEdited || false
                 };
-            });
-        }
+                return {...prev, comments: updatedComments};
+            }
+
+            // Add new comment
+            return {
+                ...prev,
+                comments: [...(prev.comments || []), {
+                    _id: data.commentId || Date.now().toString(),
+                    content: data.content,
+                    user: {name: data.author || "Unknown", _id: data.userId},
+                    createdAt: new Date().toISOString(),
+                    isEdited: data.isEdited || false
+                }]
+            };
+        });
     }, [task?._id]);
 
+
     useTaskCommentSocket(task?.project?._id, task?._id, handleNewComment);
+
+    // Handle real-time file updates via socket
+    useTaskFileSocket(realTimeTask?.project?._id, realTimeTask?._id, ({type, file}) => {
+        setRealTimeTask(prev => {
+            if (!prev) return prev;
+
+            if (type === 'uploaded') {
+                const exists = prev.attachments?.some(f => f._id === file._id);
+                if (exists) return prev;
+                return {
+                    ...prev,
+                    attachments: [...(prev.attachments || []), file]
+                };
+            }
+
+            if (type === 'deleted') {
+                return {
+                    ...prev,
+                    attachments: prev.attachments?.filter(f => f && f.filename !== file.filename) || []
+                };
+            }
+
+            return prev;
+        });
+    });
 
     // Handle real-time file updates (using activity updates for now)
     useEffect(() => {
@@ -194,7 +234,7 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
 
                 // Update local state by removing the file
                 setRealTimeTask(prev => ({
-                    ...prev, attachments: prev.attachments?.filter(file => file.filename !== filename) || []
+                    ...prev, attachments: prev.attachments?.filter(file => file && file.filename !== filename) || []
                 }));
 
                 showSuccessAlert('success', 'File Deleted', 'The file has been successfully deleted.');
@@ -255,8 +295,9 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
     };
 
     const canDeleteFile = (file) => {
-        return file.uploadedBy === user._id || user.role === 'admin' || realTimeTask.createdBy === user._id;
+        return file?.uploadedBy === user._id || user.role === 'admin' || realTimeTask?.createdBy === user._id;
     };
+
 
     const getFileType = (mimetype) => {
         if (!mimetype) return 'File';
@@ -521,25 +562,27 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
                                 {/* Files List */}
                                 {realTimeTask.attachments && realTimeTask.attachments.length > 0 ? (
                                     <div className="space-y-3">
-                                        {realTimeTask.attachments.map((file, index) => (<div
-                                            key={file._id || index}
+                                        {realTimeTask.attachments.filter(Boolean).map((file, index) => (<div
+                                            key={file?._id || index}
                                             className="glass-card p-4 flex items-center justify-between group hover:bg-white/5 transition-colors"
                                         >
                                             <div className="flex items-center space-x-3 flex-1 min-w-0">
                                                 <div className="flex-shrink-0">
-                                                    {getFileIcon(file.mimeType)}
+                                                    {getFileIcon(file?.mimeType)}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-white font-medium truncate">
-                                                        {file.originalName}
+                                                        {file?.originalName || "Unnamed File"}
                                                     </p>
                                                     <div
                                                         className="flex items-center space-x-4 text-white/70 text-sm">
-                                                        <span>{getFileType(file.mimeType)}</span>
+                                                        <span>{getFileType(file?.mimeType) || "Unknown Type"}</span>
                                                         <span>•</span>
-                                                        <span>{formatFileSize(file.size)}</span>
+                                                        <span>{file?.size ? formatFileSize(file.size) : "Unknown Size"}</span>
                                                         <span>•</span>
-                                                        <span>{new Date(file.uploadedAt).toLocaleDateString()}</span>
+                                                        <span>
+                                {file?.uploadedAt && !isNaN(new Date(file.uploadedAt)) ? new Date(file.uploadedAt).toLocaleDateString() : "Unknown Date"}
+                            </span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -547,15 +590,15 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
                                             <div
                                                 className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <button
-                                                    onClick={() => handleDownload(file.filename, file.originalName)}
+                                                    onClick={() => handleDownload(file?.filename, file?.originalName)}
                                                     className="p-2 hover:bg-white/10 rounded transition-colors"
                                                     title="Download"
                                                 >
                                                     <Download className="w-4 h-4 text-white/70"/>
                                                 </button>
 
-                                                {canDeleteFile(file) && (<button
-                                                    onClick={() => handleFileDelete(file.filename)}
+                                                {file && canDeleteFile(file) && (<button
+                                                    onClick={() => handleFileDelete(file?.filename)}
                                                     className="p-2 hover:bg-white/10 rounded transition-colors"
                                                     title="Delete"
                                                 >
@@ -570,6 +613,7 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
                                         Upload files to share with your team
                                     </p>
                                 </div>)}
+
                             </div>
 
                             {/* Comments Section */}

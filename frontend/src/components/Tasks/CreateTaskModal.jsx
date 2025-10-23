@@ -283,13 +283,12 @@ const CreateTaskModal = () => {
                           name="project"
                           value={formData.project}
                           onChange={handleChange}
-                          className={`w-full px-4 py-3 bg-white/10 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                              errors.project ? 'border-red-500' : 'border-white/20'
-                          }`}
+                          className={`w-full px-4 py-3 bg-white/10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+    ${errors.project ? 'border-red-500' : 'border-white/20'} text-white`}
                       >
                         <option value="">Select a project</option>
                         {projects.map((project) => (
-                            <option key={project._id} value={project._id}>
+                            <option key={project._id} value={project._id} className="text-black">
                               {project.name}
                             </option>
                         ))}

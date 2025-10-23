@@ -211,13 +211,13 @@ const ProjectsPage = () => {
                         <select
                             value={filterStatus}
                             onChange={(e) => setFilterStatus(e.target.value)}
-                            className="px-6 py-2 bg-white/20 backdrop-blur-md border border-white/30 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="px-6 py-2 bg-white/20 backdrop-blur-md border border-white/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                             <option value="all">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="completed">Completed</option>
-                            <option value="on-hold">On Hold</option>
-                            <option value="planning">Planning</option>
+                            <option value="active" className="text-black">Active</option>
+                            <option value="completed" className="text-black">Completed</option>
+                            <option value="on-hold" className="text-black">On Hold</option>
+                            <option value="planning" className="text-black">Planning</option>
                         </select>
 
                         {/* View Toggle */}

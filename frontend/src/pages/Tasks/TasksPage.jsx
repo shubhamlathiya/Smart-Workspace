@@ -203,10 +203,10 @@ const TasksPage = () => {
                             className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                             <option value="">All Status</option>
-                            <option value="todo">To Do</option>
-                            <option value="in-progress">In Progress</option>
-                            <option value="review">Review</option>
-                            <option value="completed">Completed</option>
+                            <option value="todo" className="text-black">To Do</option>
+                            <option value="in-progress" className="text-black">In Progress</option>
+                            <option value="review" className="text-black">Review</option>
+                            <option value="completed" className="text-black">Completed</option>
                         </select>
 
                         <select
@@ -215,10 +215,10 @@ const TasksPage = () => {
                             className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                             <option value="">All Priority</option>
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
-                            <option value="urgent">Urgent</option>
+                            <option value="low" className="text-black">Low</option>
+                            <option value="medium" className="text-black">Medium</option>
+                            <option value="high" className="text-black">High</option>
+                            <option value="urgent" className="text-black">Urgent</option>
                         </select>
 
                         <select
@@ -227,8 +227,8 @@ const TasksPage = () => {
                             className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                             <option value="">All Assignees</option>
-                            <option value="me">Assigned to Me</option>
-                            <option value="unassigned">Unassigned</option>
+                            <option value="me" className="text-black">Assigned to Me</option>
+                            <option value="unassigned" className="text-black">Unassigned</option>
                         </select>
                     </div>
                 </div>
