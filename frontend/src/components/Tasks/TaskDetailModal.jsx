@@ -15,6 +15,7 @@ import {openModal} from '../../features/ui/uiSlice';
 import {showConfirmAlert, showErrorAlert, showSuccessAlert} from "../../utils/alerts.jsx";
 import {encryptComment, decryptComment} from '../../utils/encryption';
 
+
 const TaskDetailModal = ({task, isOpen, onClose}) => {
     const dispatch = useAppDispatch();
     const {user} = useAppSelector(state => state.auth);
@@ -35,30 +36,67 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
     const fileInputRef = useRef(null);
     const {typingUsers, startTyping, stopTyping} = useTaskTypingIndicator(task?.project?._id, task?._id);
 
-
-    // Join project room for real-time updates
+    /** SOCKET CONNECTIONS **/
     useProjectSocket(task?.project?._id);
 
-    // Handle real-time task updates
+    /** Sync task prop with local state */
+    useEffect(() => {
+        if (task) setRealTimeTask(task);
+    }, [task]);
+
+    /** Initialize editData from task */
+    useEffect(() => {
+        if (!realTimeTask) return;
+        setEditData({
+            title: realTimeTask.title,
+            description: realTimeTask.description,
+            priority: realTimeTask.priority,
+            status: realTimeTask.status,
+            dueDate: realTimeTask.dueDate ? new Date(realTimeTask.dueDate).toISOString().split('T')[0] : '',
+            tags: realTimeTask.tags?.join(', ') || '',
+        });
+    }, [realTimeTask]);
+
+    /** Focus comment input on modal open */
+    useEffect(() => {
+        if (isOpen && commentInputRef.current) commentInputRef.current.focus();
+    }, [isOpen]);
+
+    /** HANDLE TASK UPDATES FROM SOCKET **/
     useEffect(() => {
         if (!socketService || !task) return;
 
         const handleTaskUpdate = (data) => {
             if (data.taskId === task._id) {
-                setRealTimeTask(prev => ({
-                    ...prev, ...data, updatedAt: new Date().toISOString()
-                }));
+                setRealTimeTask(prev => ({...prev, ...data, updatedAt: new Date().toISOString()}));
             }
         };
 
+        const handleFileUpdate = ({type, file}) => {
+            if (!file) return;
+            setRealTimeTask(prev => {
+                if (!prev) return prev;
+                if (type === 'uploaded') {
+                    if (prev.attachments?.some(f => f._id === file._id)) return prev;
+                    return {...prev, attachments: [...(prev.attachments || []), file]};
+                }
+                if (type === 'deleted') {
+                    return {...prev, attachments: prev.attachments?.filter(f => f._id !== file._id) || []};
+                }
+                return prev;
+            });
+        };
+
         socketService.on('task_updated', handleTaskUpdate);
+        socketService.on('task_file_uploaded', handleFileUpdate);
 
         return () => {
             socketService.off('task_updated', handleTaskUpdate);
+            socketService.off('task_file_uploaded', handleFileUpdate);
         };
     }, [socketService, task]);
 
-    // Handle real-time comment updates
+    /** HANDLE COMMENTS FROM SOCKET **/
     const handleNewComment = useCallback((data) => {
         if (data.taskId !== task?._id) return;
 
@@ -66,7 +104,6 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
             const existingIndex = prev.comments?.findIndex(c => c._id === data.commentId);
 
             if (existingIndex !== undefined && existingIndex > -1) {
-                // Update the existing comment
                 const updatedComments = [...prev.comments];
                 updatedComments[existingIndex] = {
                     ...updatedComments[existingIndex],
@@ -78,7 +115,6 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
                 return {...prev, comments: updatedComments};
             }
 
-            // Add new comment
             return {
                 ...prev,
                 comments: [...(prev.comments || []), {
@@ -92,188 +128,216 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
         });
     }, [task?._id]);
 
-
     useTaskCommentSocket(task?.project?._id, task?._id, handleNewComment);
 
-    // Handle real-time file updates via socket
+    /** FILE SOCKET UPDATES **/
     useTaskFileSocket(realTimeTask?.project?._id, realTimeTask?._id, ({type, file}) => {
+        if (!file) return;
         setRealTimeTask(prev => {
             if (!prev) return prev;
-
             if (type === 'uploaded') {
-                const exists = prev.attachments?.some(f => f._id === file._id);
-                if (exists) return prev;
-                return {
-                    ...prev,
-                    attachments: [...(prev.attachments || []), file]
-                };
+                if (prev.attachments?.some(f => f._id === file._id)) return prev;
+                return {...prev, attachments: [...(prev.attachments || []), file]};
             }
-
             if (type === 'deleted') {
-                return {
-                    ...prev,
-                    attachments: prev.attachments?.filter(f => f && f.filename !== file.filename) || []
-                };
+                return {...prev, attachments: prev.attachments?.filter(f => f._id !== file._id) || []};
             }
-
             return prev;
         });
     });
 
-    // Handle real-time file updates (using activity updates for now)
-    useEffect(() => {
-        if (!socketService || !task) return;
-
-        const handleActivityUpdate = (data) => {
-            if (data.taskId === task._id && data.type === 'file_upload') {
-                // Refresh task data to get updated attachments
-                // In a real app, you'd want to update the specific file
-                setRealTimeTask(prev => ({...prev}));
-            }
-        };
-
-        socketService.on('activity_update', handleActivityUpdate);
-
-        return () => {
-            socketService.off('activity_update', handleActivityUpdate);
-        };
-    }, [socketService, task, user?.name]);
-
-    // Sync realTimeTask with prop task
-    useEffect(() => {
-        if (task) {
-            setRealTimeTask(task);
-        }
-    }, [task]);
-
-    useEffect(() => {
-        if (realTimeTask) {
-            setEditData({
-                title: realTimeTask.title,
-                description: realTimeTask.description,
-                priority: realTimeTask.priority,
-                status: realTimeTask.status,
-                dueDate: realTimeTask.dueDate ? new Date(realTimeTask.dueDate).toISOString().split('T')[0] : '',
-                tags: realTimeTask.tags?.join(', ') || '',
-            });
-        }
-    }, [realTimeTask]);
-
-    useEffect(() => {
-        if (isOpen && commentInputRef.current) {
-            commentInputRef.current.focus();
-        }
-    }, [isOpen]);
-
-    // File Upload Handlers
-    const handleFileSelect = (event) => {
-        const files = Array.from(event.target.files);
-        files.forEach(file => handleFileUpload(file));
-        event.target.value = ''; // Reset input
+    /** FILE HANDLERS **/
+    const handleFileSelect = (e) => {
+        const files = Array.from(e.target.files);
+        files.forEach(handleFileUpload);
+        e.target.value = '';
     };
 
     const handleFileUpload = async (file) => {
         if (!realTimeTask) return;
-
         try {
-            const result = await dispatch(uploadTaskFile({
-                taskId: realTimeTask._id, file
-            })).unwrap();
+            const result = await dispatch(uploadTaskFile({taskId: realTimeTask._id, file})).unwrap();
 
-            // Emit activity update for file upload
-            if (socketService) {
-                socketService.emitActivityUpdate({
-                    workspaceId: realTimeTask.project.workspaceId,
-                    projectId: realTimeTask.project._id,
-                    taskId: realTimeTask._id,
-                    type: 'file_upload',
-                    fileName: file.name,
-                    user: user.name,
-                    timestamp: new Date(),
-                });
-            }
+            // Emit activity for file upload
+            socketService?.emitActivityUpdate({
+                workspaceId: realTimeTask.project.workspaceId,
+                projectId: realTimeTask.project._id,
+                taskId: realTimeTask._id,
+                type: 'file_upload',
+                fileName: file.name,
+                user: user.name,
+                timestamp: new Date(),
+            });
 
-            // Update local state with new file
-            setRealTimeTask(prev => ({
-                ...prev, attachments: [...(prev.attachments || []), result.file]
-            }));
-
+            setRealTimeTask(prev => ({...prev, attachments: [...(prev.attachments || []), result.file]}));
             showSuccessAlert('success', 'File Uploaded', 'File has been uploaded successfully');
-        } catch (error) {
-            console.error('File upload failed:', error);
+        } catch (err) {
             showErrorAlert('error', 'Upload Failed', 'Failed to upload file. Please try again.');
+            console.error(err);
         }
     };
 
     const handleFileDelete = async (filename) => {
         if (!realTimeTask) return;
-
         const confirmed = await showConfirmAlert({
-            title: 'Delete File?',
-            message: 'Are you sure you want to delete this file?',
-            confirmText: 'Yes, delete',
-            confirmColor: '#ef4444'
+            title: 'Delete File?', message: 'Are you sure?', confirmText: 'Yes, delete', confirmColor: '#ef4444'
         });
+        if (!confirmed) return;
 
-        if (confirmed) {
-            try {
-                await dispatch(deleteTaskFile({taskId: realTimeTask._id, filename})).unwrap();
+        try {
+            await dispatch(deleteTaskFile({taskId: realTimeTask._id, filename})).unwrap();
 
-                // Emit activity update for file deletion
-                if (socketService) {
-                    socketService.emitActivityUpdate({
-                        workspaceId: realTimeTask.project.workspaceId,
-                        projectId: realTimeTask.project._id,
-                        taskId: realTimeTask._id,
-                        type: 'file_delete',
-                        fileName: filename,
-                        user: user.name,
-                        timestamp: new Date(),
-                    });
-                }
+            socketService?.emitActivityUpdate({
+                workspaceId: realTimeTask.project.workspaceId,
+                projectId: realTimeTask.project._id,
+                taskId: realTimeTask._id,
+                type: 'file_delete',
+                fileName: filename,
+                user: user.name,
+                timestamp: new Date(),
+            });
 
-                // Update local state by removing the file
-                setRealTimeTask(prev => ({
-                    ...prev, attachments: prev.attachments?.filter(file => file && file.filename !== filename) || []
-                }));
-
-                showSuccessAlert('success', 'File Deleted', 'The file has been successfully deleted.');
-            } catch (e) {
-                showErrorAlert('error', 'Failed', `${e} Unable to delete this file. Please try again.`);
-            }
+            setRealTimeTask(prev => ({
+                ...prev,
+                attachments: prev.attachments?.filter(f => f?.filename !== filename) || []
+            }));
+            showSuccessAlert('success', 'File Deleted', 'The file has been successfully deleted.');
+        } catch (err) {
+            showErrorAlert('error', 'Delete Failed', 'Unable to delete this file.');
+            console.error(err);
         }
     };
 
     const handleDownload = (filename, originalName) => {
         dispatch(downloadFile(filename))
             .unwrap()
-            .then(() => {
-                console.log(`${originalName} download started`);
-            })
-            .catch((error) => {
-                console.error('Download failed:', error);
+            .then(() => console.log(`${originalName} download started`))
+            .catch(console.error);
+    };
+
+    /** TASK UPDATE HANDLERS **/
+    const handleSave = async () => {
+        try {
+            const updateData = {
+                ...editData,
+                tags: editData.tags ? editData.tags.split(',').map(tag => tag.trim()).filter(tag => tag) : [],
+            };
+            await dispatch(updateTask({taskId: realTimeTask._id, updateData})).unwrap();
+
+            socketService?.emitTaskUpdate({
+                projectId: realTimeTask.project._id,
+                taskId: realTimeTask._id,
+                updateData,
+                updatedBy: user.name,
+                timestamp: new Date(),
             });
+
+            setIsEditing(false);
+            showSuccessAlert('success', 'Task Updated', 'Task has been updated successfully');
+        } catch (err) {
+            console.error(err);
+            showErrorAlert('error', 'Update Failed', 'Failed to update task. Please try again.');
+        }
     };
 
-    const handleDragOver = (e) => {
-        e.preventDefault();
-        setDragOver(true);
+    /** COMMENT HANDLERS **/
+    const handleAddComment = async () => {
+        if (!newComment.trim()) return;
+
+        const tempCommentId = `temp-${Date.now()}`; // Temporary ID for optimistic update
+        const encryptedContent = encryptComment(newComment.trim());
+
+        // Optimistically update UI
+        setRealTimeTask(prev => ({
+            ...prev,
+            comments: [
+                ...(prev.comments || []),
+                {
+                    _id: tempCommentId,
+                    content: encryptedContent,
+                    user: {name: user.name, _id: user._id},
+                    createdAt: new Date().toISOString(),
+                    isEdited: false,
+                    isTemp: true, // mark as temporary
+                }
+            ]
+        }));
+
+        setNewComment('');
+        stopTyping();
+
+        try {
+            const result = await dispatch(addTaskComment({
+                taskId: realTimeTask._id,
+                content: encryptedContent
+            })).unwrap();
+
+            const addedComment = (result.data || result).comments?.slice(-1)[0];
+            if (addedComment) {
+                // Replace temporary comment with server comment
+                setRealTimeTask(prev => ({
+                    ...prev,
+                    comments: prev.comments.map(c =>
+                        c._id === tempCommentId ? addedComment : c
+                    )
+                }));
+
+                if (socketService) {
+                    socketService.emitNewComment({
+                        projectId: realTimeTask.project._id,
+                        taskId: realTimeTask._id,
+                        commentId: addedComment._id,
+                        content: encryptedContent,
+                        author: user.name,
+                        userId: user._id,
+                        timestamp: new Date(),
+                    });
+                }
+            }
+        } catch (err) {
+            // Remove temporary comment if failed
+            setRealTimeTask(prev => ({
+                ...prev,
+                comments: prev.comments.filter(c => c._id !== tempCommentId)
+            }));
+            showErrorAlert('error', 'Comment Failed', `${err} Failed to add comment`);
+        }
     };
 
-    const handleDragLeave = (e) => {
-        e.preventDefault();
-        setDragOver(false);
+
+    const handleUpdateComment = async (commentId) => {
+        if (!commentText.trim()) return;
+        try {
+            await dispatch(updateTaskComment({
+                taskId: realTimeTask._id,
+                commentId,
+                content: commentText.trim()
+            })).unwrap();
+            setEditingComment(null);
+            setCommentText('');
+            showSuccessAlert('success', 'Comment Updated', 'Comment has been updated successfully');
+        } catch (err) {
+            console.error(err);
+            showErrorAlert('error', 'Update Failed', 'Failed to update comment.');
+        }
     };
 
-    const handleDrop = (e) => {
-        e.preventDefault();
-        setDragOver(false);
+    const handleDeleteComment = async (commentId) => {
+        const confirmed = await showConfirmAlert({
+            title: 'Delete Comment?', message: 'Are you sure?', confirmText: 'Yes, delete', confirmColor: '#ef4444'
+        });
+        if (!confirmed) return;
 
-        const files = Array.from(e.dataTransfer.files);
-        files.forEach(file => handleFileUpload(file));
+        try {
+            await dispatch(deleteTaskComment({taskId: realTimeTask._id, commentId})).unwrap();
+            showSuccessAlert('success', 'Comment Deleted', 'Comment has been deleted successfully');
+        } catch (err) {
+            console.error(err);
+            showErrorAlert('error', 'Delete Failed', 'Failed to delete comment.');
+        }
     };
 
-    // File Utility Functions
+    /** FILE UTILITY FUNCTIONS **/
     const formatFileSize = (bytes) => {
         if (bytes === 0) return '0 Bytes';
         const k = 1024;
@@ -285,19 +349,42 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
     const getFileIcon = (mimetype) => {
         if (!mimetype) return <File className="w-5 h-5 text-gray-400"/>;
         if (mimetype.startsWith('image/')) return <Image className="w-5 h-5 text-blue-400"/>;
-        if (mimetype.startsWith('video/')) return '🎬';
-        if (mimetype.startsWith('audio/')) return '🎵';
         if (mimetype.includes('pdf')) return <FileText className="w-5 h-5 text-red-400"/>;
-        if (mimetype.includes('word')) return '📝';
-        if (mimetype.includes('excel') || mimetype.includes('spreadsheet')) return '📊';
-        if (mimetype.includes('zip') || mimetype.includes('compressed')) return '📦';
         return <File className="w-5 h-5 text-gray-400"/>;
     };
 
-    const canDeleteFile = (file) => {
-        return file?.uploadedBy === user._id || user.role === 'admin' || realTimeTask?.createdBy === user._id;
+    const canDeleteFile = (file) => file?.uploadedBy === user._id || user.role === 'admin' || realTimeTask?.createdBy === user._id;
+
+    /** HANDLERS FOR DRAG AND DROP **/
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        setDragOver(true);
+    };
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        setDragOver(false);
+    };
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setDragOver(false);
+        Array.from(e.dataTransfer.files).forEach(handleFileUpload);
     };
 
+    /** ASSIGNEE HANDLERS **/
+    const handleAssignUsers = (task) => {
+        dispatch(setCurrentTask(task));
+        dispatch(openModal('assignUsers'));
+    };
+
+    const getStatusColor = (status) => {
+        const colors = {
+            todo: 'bg-gray-100 text-gray-800',
+            'in-progress': 'bg-blue-100 text-blue-800',
+            review: 'bg-yellow-100 text-yellow-800',
+            completed: 'bg-green-100 text-green-800',
+        };
+        return colors[status] || colors.todo;
+    };
 
     const getFileType = (mimetype) => {
         if (!mimetype) return 'File';
@@ -311,102 +398,6 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
         return 'File';
     };
 
-    // Task Handlers with Socket Emissions
-    const handleSave = async () => {
-        try {
-            const updateData = {
-                ...editData,
-                tags: editData.tags ? editData.tags.split(',').map(tag => tag.trim()).filter(tag => tag) : [],
-            };
-
-            await dispatch(updateTask({
-                taskId: realTimeTask._id, updateData
-            })).unwrap();
-
-            // Emit real-time update using socketService method
-            if (socketService) {
-                socketService.emitTaskUpdate({
-                    projectId: realTimeTask.project._id,
-                    taskId: realTimeTask._id,
-                    updateData,
-                    updatedBy: user.name,
-                    timestamp: new Date(),
-                });
-            }
-
-            setIsEditing(false);
-            showSuccessAlert('success', 'Task Updated', 'Task has been updated successfully');
-        } catch (error) {
-            console.error('Failed to update task:', error);
-            showErrorAlert('error', 'Update Failed', 'Failed to update task. Please try again.');
-        }
-    };
-
-    const handleAddComment = async () => {
-        if (!newComment.trim()) return;
-        try {
-            const encryptedContent = encryptComment(newComment.trim());
-            const result = await dispatch(addTaskComment({
-                taskId: realTimeTask._id, content: encryptedContent
-            })).unwrap();
-            const addedComment = (result.data || result).comments?.slice(-1)[0];
-            if (socketService && addedComment) {
-                socketService.emitNewComment({
-                    projectId: realTimeTask.project._id,
-                    taskId: realTimeTask._id,
-                    commentId: addedComment._id,
-                    content: encryptedContent,
-                    author: user.name,
-                    userId: user._id,
-                    timestamp: new Date(),
-                });
-            }
-            setNewComment('');
-            stopTyping();
-        } catch (err) {
-            showErrorAlert('error', 'Comment Failed', `${err} Failed to add comment`);
-        }
-    };
-
-    const handleUpdateComment = async (commentId) => {
-        if (!commentText.trim()) return;
-
-        try {
-            await dispatch(updateTaskComment({
-                taskId: realTimeTask._id, commentId, content: commentText.trim()
-            })).unwrap();
-
-            setEditingComment(null);
-            setCommentText('');
-            showSuccessAlert('success', 'Comment Updated', 'Comment has been updated successfully');
-        } catch (error) {
-            console.error('Failed to update comment:', error);
-            showErrorAlert('error', 'Update Failed', 'Failed to update comment. Please try again.');
-        }
-    };
-
-    const handleDeleteComment = async (commentId) => {
-        const confirmed = await showConfirmAlert({
-            title: 'Delete Comment?',
-            message: 'Are you sure you want to delete this comment?',
-            confirmText: 'Yes, delete',
-            confirmColor: '#ef4444'
-        });
-
-        if (!confirmed) return;
-
-        try {
-            await dispatch(deleteTaskComment({
-                taskId: realTimeTask._id, commentId
-            })).unwrap();
-
-            showSuccessAlert('success', 'Comment Deleted', 'Comment has been deleted successfully');
-        } catch (error) {
-            console.error('Failed to delete comment:', error);
-            showErrorAlert('error', 'Delete Failed', 'Failed to delete comment. Please try again.');
-        }
-    };
-
     const handleCommentInputChange = (e) => {
         setNewComment(e.target.value);
 
@@ -415,11 +406,6 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
         } else {
             stopTyping();
         }
-    };
-
-    const handleAssignUsers = (task) => {
-        dispatch(setCurrentTask(task));
-        dispatch(openModal('assignUsers'));
     };
 
     const getPriorityColor = (priority) => {
@@ -432,15 +418,6 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
         return colors[priority] || colors.medium;
     };
 
-    const getStatusColor = (status) => {
-        const colors = {
-            todo: 'bg-gray-100 text-gray-800',
-            'in-progress': 'bg-blue-100 text-blue-800',
-            review: 'bg-yellow-100 text-yellow-800',
-            completed: 'bg-green-100 text-green-800',
-        };
-        return colors[status] || colors.todo;
-    };
 
     const getAssigneeDisplay = (assignment) => {
         if (assignment.user?.name) {
