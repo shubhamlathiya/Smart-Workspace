@@ -36,30 +36,17 @@ const DashboardPage = () => {
 
     // Calculate real statistics
     const calculateStats = () => {
-        const userWorkspaces = workspaces.filter(workspace =>
-            workspace.owner?._id === user?._id ||
-            workspace.members?.some(member => member.user?._id === user?._id)
-        );
+        const userWorkspaces = workspaces.filter(workspace => workspace.owner?._id === user?._id || workspace.members?.some(member => member.user?._id === user?._id));
 
-        const userProjects = projects.filter(project =>
-            project.createdBy?._id === user?._id ||
-            project.assignedMembers?.some(member => member.user?._id === user?._id)
-        );
+        const userProjects = projects.filter(project => project.createdBy?._id === user?._id || project.assignedMembers?.some(member => member.user?._id === user?._id));
 
-        const userTasks = tasks.filter(task =>
-            task.createdBy?._id === user?._id ||
-            task.assignedTo?.some(assignment => assignment.user?._id === user?._id)
-        );
+        const userTasks = tasks.filter(task => task.createdBy?._id === user?._id || task.assignedTo?.some(assignment => assignment.user?._id === user?._id));
 
         const completedTasks = userTasks.filter(task => task.status === 'completed').length;
         const completionRate = userTasks.length > 0 ? Math.round((completedTasks / userTasks.length) * 100) : 0;
 
         // Calculate overdue tasks
-        const overdueTasks = userTasks.filter(task =>
-            task.dueDate &&
-            new Date(task.dueDate) < new Date() &&
-            task.status !== 'completed'
-        ).length;
+        const overdueTasks = userTasks.filter(task => task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed').length;
 
         // Calculate tasks by status
         const tasksByStatus = {
@@ -135,17 +122,14 @@ const DashboardPage = () => {
     };
 
     if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-96">
+        return (<div className="flex items-center justify-center min-h-96">
                 <LoadingSpinner size="large" text="Loading dashboard..."/>
-            </div>
-        );
+            </div>);
     }
 
     const hasData = stats.totalWorkspaces > 0 || stats.totalProjects > 0 || stats.totalTasks > 0;
 
-    return (
-        <div className="space-y-6">
+    return (<div className="space-y-6">
             {/* Welcome section */}
             <motion.div
                 initial={{opacity: 0, y: 20}}
@@ -159,19 +143,14 @@ const DashboardPage = () => {
                             Welcome back, {user?.name}! 👋
                         </h1>
                         <p className="text-white/70">
-                            {hasData
-                                ? "Here's what's happening in your workspace today."
-                                : "Let's get started with your first workspace!"
-                            }
+                            {hasData ? "Here's what's happening in your workspace today." : "Let's get started with your first workspace!"}
                         </p>
                     </div>
-                    {hasData && (
-                        <div className="mt-4 sm:mt-0">
+                    {hasData && (<div className="mt-4 sm:mt-0">
               <span className="text-sm text-white/50">
                 Last updated: {new Date().toLocaleTimeString()}
               </span>
-                        </div>
-                    )}
+                        </div>)}
                 </div>
             </motion.div>
 
@@ -238,27 +217,30 @@ const DashboardPage = () => {
             </div>
 
             {/* Task Status Overview */}
-            {stats.totalTasks > 0 && (
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.5 }}
+            {stats.totalTasks > 0 && (<motion.div
+                    initial={{opacity: 0, y: 20}}
+                    animate={{opacity: 1, y: 0}}
+                    transition={{duration: 0.5, delay: 0.5}}
                     className="glass-card p-6"
                 >
                     <h3 className="text-xl font-bold text-white mb-6">Task Overview</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                        {[
-                            { label: 'To Do', count: stats.tasksByStatus.todo, color: 'blue' },
-                            { label: 'In Progress', count: stats.tasksByStatus.inProgress, color: 'amber' },
-                            { label: 'In Review', count: stats.tasksByStatus.review, color: 'purple' },
-                            { label: 'Completed', count: stats.tasksByStatus.completed, color: 'emerald' },
-                        ].map((status) => {
-                            const percentage = stats.totalTasks
-                                ? Math.round((status.count / stats.totalTasks) * 100)
-                                : 0;
+                        {[{label: 'To Do', count: stats.tasksByStatus.todo, color: 'blue'}, {
+                            label: 'In Progress',
+                            count: stats.tasksByStatus.inProgress,
+                            color: 'amber'
+                        }, {
+                            label: 'In Review',
+                            count: stats.tasksByStatus.review,
+                            color: 'purple'
+                        }, {
+                            label: 'Completed',
+                            count: stats.tasksByStatus.completed,
+                            color: 'emerald'
+                        },].map((status) => {
+                            const percentage = stats.totalTasks ? Math.round((status.count / stats.totalTasks) * 100) : 0;
 
-                            return (
-                                <div
+                            return (<div
                                     key={status.label}
                                     className="p-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md hover:scale-105 transform transition-all duration-200 cursor-pointer flex flex-col justify-between"
                                 >
@@ -276,7 +258,7 @@ const DashboardPage = () => {
                                     <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden mt-auto">
                                         <div
                                             className={`h-full rounded-full bg-${status.color}-400 transition-all duration-500`}
-                                            style={{ width: `${percentage}%` }}
+                                            style={{width: `${percentage}%`}}
                                         ></div>
                                     </div>
 
@@ -284,16 +266,13 @@ const DashboardPage = () => {
                                     <div className="text-xs text-white/50 mt-2 text-right">
                                         {percentage}% of total tasks
                                     </div>
-                                </div>
-                            );
+                                </div>);
                         })}
                     </div>
-                </motion.div>
-            )}
+                </motion.div>)}
 
             {/* Main content grid */}
-            {hasData ? (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {hasData ? (<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Quick Actions */}
                     <motion.div
                         initial={{opacity: 0, x: -20}}
@@ -317,9 +296,7 @@ const DashboardPage = () => {
                     >
                         <RecentActivity activities={getRecentActivities()}/>
                     </motion.div>
-                </div>
-            ) : (
-                /* Empty state for new users */
+                </div>) : (/* Empty state for new users */
                 <motion.div
                     initial={{opacity: 0, y: 20}}
                     animate={{opacity: 1, y: 0}}
@@ -353,12 +330,10 @@ const DashboardPage = () => {
                             Learn More
                         </button>
                     </div>
-                </motion.div>
-            )}
+                </motion.div>)}
 
             {/* Quick Tips Section */}
-            {hasData && stats.totalTasks > 0 && (
-                <motion.div
+            {hasData && stats.totalTasks > 0 && (<motion.div
                     initial={{opacity: 0, y: 20}}
                     animate={{opacity: 1, y: 0}}
                     transition={{duration: 0.5, delay: 0.8}}
@@ -376,8 +351,7 @@ const DashboardPage = () => {
                                     You have {stats.overdueTasks} overdue task{stats.overdueTasks > 1 ? 's' : ''}.
                                     Review them soon.
                                 </p>
-                            </div>
-                        )}
+                            </div>)}
 
                         {stats.tasksByStatus.todo > 0 && (
                             <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
@@ -389,31 +363,30 @@ const DashboardPage = () => {
                                     {stats.tasksByStatus.todo} task{stats.tasksByStatus.todo > 1 ? 's' : ''} waiting to
                                     be started.
                                 </p>
-                            </div>
-                        )}
+                            </div>)}
 
 
-                        {stats.completionRate >= 80 && (
-                            <div className="p-4 bg-gradient-to-br from-gray-900/60 to-gray-800/40 border-l-4 border-green-500 rounded-r-xl backdrop-blur-md">
+                        {stats.completionRate >= 80 && (<div
+                                className="p-4 bg-gradient-to-br from-gray-900/60 to-gray-800/40 border-l-4 border-green-500 rounded-r-xl backdrop-blur-md">
                                 <div className="flex items-start space-x-3">
-                                    <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <div
+                                        className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                                         <span className="text-green-400 text-sm">★</span>
                                     </div>
                                     <div>
                                         <div className="text-green-300 font-semibold mb-1">Exceptional Progress</div>
                                         <p className="text-green-200 text-sm leading-relaxed">
-                                            With <span className="text-green-400 font-semibold">{stats.completionRate}%</span> of tasks completed,
+                                            With <span
+                                            className="text-green-400 font-semibold">{stats.completionRate}%</span> of
+                                            tasks completed,
                                             you're demonstrating outstanding productivity and efficiency.
                                         </p>
                                     </div>
                                 </div>
-                            </div>
-                        )}
+                            </div>)}
                     </div>
-                </motion.div>
-            )}
-        </div>
-    );
+                </motion.div>)}
+        </div>);
 };
 
 export default DashboardPage;
