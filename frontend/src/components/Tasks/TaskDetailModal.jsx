@@ -308,20 +308,46 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
 
     const handleUpdateComment = async (commentId) => {
         if (!commentText.trim()) return;
+
         try {
+            const encryptedContent = encryptComment(commentText.trim());
+
+            // Optimistically update UI
+            setRealTimeTask(prev => ({
+                ...prev,
+                comments: prev.comments.map(comment =>
+                    comment._id === commentId
+                        ? {...comment, content: encryptedContent, isEdited: true}
+                        : comment
+                )
+            }));
+
             await dispatch(updateTaskComment({
                 taskId: realTimeTask._id,
                 commentId,
-                content: commentText.trim()
+                content: encryptedContent
             })).unwrap();
+
             setEditingComment(null);
             setCommentText('');
-            showSuccessAlert('success', 'Comment Updated', 'Comment has been updated successfully');
+            // showSuccessAlert('success', 'Comment Updated', 'Comment has been updated successfully');
+
+            // Use existing task_updated socket event
+            if (socketService) {
+                socketService.emit('task_updated', {
+                    projectId: realTimeTask.project._id,
+                    taskId: realTimeTask._id,
+                    updatedBy: user._id,
+                    timestamp: new Date(),
+                });
+            }
+
         } catch (err) {
             console.error(err);
             showErrorAlert('error', 'Update Failed', 'Failed to update comment.');
         }
     };
+
 
     const handleDeleteComment = async (commentId) => {
         const confirmed = await showConfirmAlert({
@@ -625,7 +651,7 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
                                                             <button
                                                                 onClick={() => {
                                                                     setEditingComment(comment._id);
-                                                                    setCommentText(comment.content);
+                                                                    setCommentText(decryptComment(comment.content));
                                                                 }}
                                                                 className="p-1 hover:bg-white/10 rounded"
                                                             >

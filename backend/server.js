@@ -56,8 +56,28 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/smart-wor
     useNewUrlParser: true,
     useUnifiedTopology: true,
 })
-    .then(() => console.log('MongoDB connected successfully'))
+    .then(async () => {
+        console.log('MongoDB connected successfully');
+
+        // Check if any admin exists
+        const adminExists = await User.exists({ role: 'admin' });
+        if (!adminExists) {
+            const defaultAdmin = new User({
+                name: 'Super Admin',
+                email: 'admin@example.com',
+                password: 'Admin@123',
+                role: 'admin',
+                isEmailVerified: true
+            });
+
+            await defaultAdmin.save();
+            console.log('Default admin user created successfully');
+        } else {
+            console.log('Admin user already exists');
+        }
+    })
     .catch(err => console.error('MongoDB connection error:', err));
+
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

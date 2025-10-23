@@ -31,7 +31,6 @@ import {getCurrentUser} from './features/auth/authSlice.jsx';
 import {fetchWorkspaces} from './features/workspace/workspaceSlice.jsx';
 import {fetchProjects} from './features/project/projectSlice.jsx';
 import {fetchTasks} from './features/task/taskSlice.jsx';
-import InvitationAcceptPage from "./pages/Invitation/InvitationAcceptPage.jsx";
 
 // App component
 function AppContent() {
@@ -121,6 +120,7 @@ function AppContent() {
 
                         {/* Profile route */}
                         <Route path="profile" element={<ProfilePage/>}/>
+
                     </Route>
 
                     {/* 404 route */}
