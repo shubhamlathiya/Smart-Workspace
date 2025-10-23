@@ -55,7 +55,7 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
         return () => {
             socketService.off('task_updated', handleTaskUpdate);
         };
-    }, [socketService, task, user.name]);
+    }, [socketService, task, user?.name]);
 
     // Handle real-time comment updates
     const handleNewComment = useCallback((data) => {
@@ -64,7 +64,7 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
                 ...prev, comments: [...(prev.comments || []), {
                     _id: data.commentId || Date.now().toString(),
                     content: data.content,
-                    user: {name: data.author},
+                    user: { name: user?.name || "Unknown" },
                     createdAt: new Date().toISOString(),
                     isEdited: false
                 }]
@@ -72,7 +72,7 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
 
 
         }
-    }, [task?._id, user.name]);
+    }, [task?._id, user?.name]);
 
     useTaskCommentSocket(task?.project?._id, task?._id, handleNewComment);
 
@@ -95,7 +95,7 @@ const TaskDetailModal = ({task, isOpen, onClose}) => {
         return () => {
             socketService.off('activity_update', handleActivityUpdate);
         };
-    }, [socketService, task, user.name]);
+    }, [socketService, task, user?.name]);
 
     // Sync realTimeTask with prop task
     useEffect(() => {
