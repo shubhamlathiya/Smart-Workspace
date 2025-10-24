@@ -14,6 +14,9 @@ import KanbanBoardWrapper from '../../components/Tasks/KanbanBoardWrapper.jsx';
 import {showConfirmAlert, showErrorAlert, showSuccessAlert} from "../../utils/alerts.jsx";
 import {useSocket, useProjectSocket} from '../../hooks/useSocket';
 import StatsCard from "../../components/Dashboard/StatsCard.jsx";
+import {toast} from "react-hot-toast";
+import axios from "axios";
+import {downloadFile} from "../../features/upload/uploadSlice.jsx";
 
 const ProjectDetailPage = () => {
     const {id} = useParams();
@@ -21,7 +24,7 @@ const ProjectDetailPage = () => {
     const dispatch = useAppDispatch();
     const {currentProject, isLoading, isUpdating} = useAppSelector((state) => state.project);
     const {tasks, isLoading: tasksLoading} = useAppSelector((state) => state.task);
-    const {user} = useAppSelector((state) => state.auth);
+    const {user, token} = useAppSelector((state) => state.auth);
     const {socketService} = useSocket();
 
     const [activeTab, setActiveTab] = useState('overview');
@@ -214,7 +217,7 @@ const ProjectDetailPage = () => {
 
                 showSuccessAlert('Member removed successfully');
             } catch (err) {
-                showErrorAlert('Failed to remove member. Please try again.');
+                showErrorAlert(`Failed to remove member. ${err} Please try again.`);
             }
         }
     };
@@ -239,15 +242,15 @@ const ProjectDetailPage = () => {
         }));
     };
 
-    const getStatusColor = (status) => {
-        const colors = {
-            'active': 'from-green-500 to-emerald-600',
-            'completed': 'from-blue-500 to-cyan-600',
-            'on-hold': 'from-orange-500 to-red-600',
-            'planning': 'from-purple-500 to-indigo-600',
-        };
-        return colors[status] || 'from-gray-500 to-gray-600';
-    };
+    // const getStatusColor = (status) => {
+    //     const colors = {
+    //         'active': 'from-green-500 to-emerald-600',
+    //         'completed': 'from-blue-500 to-cyan-600',
+    //         'on-hold': 'from-orange-500 to-red-600',
+    //         'planning': 'from-purple-500 to-indigo-600',
+    //     };
+    //     return colors[status] || 'from-gray-500 to-gray-600';
+    // };
 
     const getPriorityColor = (priority) => {
         const colors = {
@@ -301,9 +304,6 @@ const ProjectDetailPage = () => {
         return {total, completed, pending, overdue};
     };
 
-    const getTasksByStatus = (status) => {
-        return tasks.filter(task => task.status === status);
-    };
 
     if (isLoading) {
         return (<div className="min-h-screen flex items-center justify-center">
@@ -338,46 +338,140 @@ const ProjectDetailPage = () => {
     const taskStats = getTaskStats();
     const progress = calculateProgress();
 
-    // Task List Item Component
-    const TaskListItem = ({task}) => (<div
-        className="p-4 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 transition-all duration-200 cursor-pointer group"
-        onClick={
-            ['admin', 'lead', 'member'].includes(getUserRoleInProject(currentProject))
-                ? () => handleTaskClick(task)
-                : null
+    const handleGenerateTaskReport = async (task) => {
+        try {
+            console.log(token);
+            await axios.post(
+                `/tasks/${task._id}/generate-task-report`
+            );
+
+            toast.success('Task report generated successfully!');
+
+            // Refresh tasks to update report status
+            dispatch(fetchTasks({projectId: currentProject._id}));
+
+        } catch (err) {
+            console.error(err);
+            toast.error(err.response?.data?.message || err.message || 'Failed to generate report.');
         }
-    >
-        <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4 flex-1">
-                <div
-                    className={`w-3 h-3 rounded-full ${task.status === 'completed' ? 'bg-green-500' : task.status === 'in-progress' ? 'bg-blue-500' : task.status === 'review' ? 'bg-yellow-500' : 'bg-gray-500'}`}/>
-                <div className="flex-1 min-w-0">
-                    <h4 className="text-white font-semibold truncate">{task.title}</h4>
-                    {task.description && (<p className="text-white/70 text-sm truncate">{task.description}</p>)}
+    };
+
+    const handleDownload = (filename, originalName) => {
+        dispatch(downloadFile(filename))
+            .unwrap()
+            .then(() => console.log(`${originalName} download started`))
+            .catch(console.error);
+    };
+
+    // Task List Item Component
+    const TaskListItem = ({task}) => (
+        <div
+            className="p-4 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 transition-all duration-200 cursor-pointer group"
+            onClick={
+                ['admin', 'lead', 'member'].includes(getUserRoleInProject(currentProject))
+                    ? () => handleTaskClick(task)
+                    : null
+            }
+        >
+            <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4 flex-1">
+                    <div
+                        className={`w-3 h-3 rounded-full ${
+                            task.status === 'completed'
+                                ? 'bg-green-500'
+                                : task.status === 'in-progress'
+                                    ? 'bg-blue-500'
+                                    : task.status === 'review'
+                                        ? 'bg-yellow-500'
+                                        : 'bg-gray-500'
+                        }`}
+                    />
+                    <div className="flex-1 min-w-0">
+                        <h4 className="text-white font-semibold truncate">{task.title}</h4>
+                        {task.description && (
+                            <p className="text-white/70 text-sm truncate">{task.description}</p>
+                        )}
+                    </div>
                 </div>
-            </div>
-            <div className="flex items-center space-x-4">
-                    <span className={`px-2 py-1 rounded-full text-xs border ${getPriorityColor(task.priority)}`}>
-                        {task.priority}
-                    </span>
-                <span className={`px-2 py-1 rounded-full text-xs border ${getStatusBadgeColor(task.status)}`}>
-                        {task.status.replace('-', ' ')}
-                    </span>
+
+                <div className="flex items-center space-x-4">
                 <span
-                    className={`px-2 py-1 rounded-full text-xs border ${task.assignedTo.length > 0 ? 'border-green-400 text-green-400' : 'border-red-400 text-red-400'}`}>
-                        {task.assignedTo.length > 0 ? task.assignedTo.map(a => a.user.name).join(', ') : 'Not Assigned'}
+                    className={`px-2 py-1 rounded-full text-xs border ${getPriorityColor(
+                        task.priority
+                    )}`}
+                >
+                    {task.priority}
+                </span>
+                    <span
+                        className={`px-2 py-1 rounded-full text-xs border ${getStatusBadgeColor(
+                            task.status
+                        )}`}
+                    >
+                    {task.status.replace('-', ' ')}
+                </span>
+                    <span
+                        className={`px-2 py-1 rounded-full text-xs border ${
+                            task.assignedTo.length > 0
+                                ? 'border-green-400 text-green-400'
+                                : 'border-red-400 text-red-400'
+                        }`}
+                    >
+                    {task.assignedTo.length > 0
+                        ? task.assignedTo.map((a) => a.user.name).join(', ')
+                        : 'Not Assigned'}
+                </span>
+                    {task.dueDate && (
+                        <span
+                            className={`text-xs ${
+                                new Date(task.dueDate) < new Date() && task.status !== 'completed'
+                                    ? 'text-red-400'
+                                    : 'text-white/70'
+                            }`}
+                        >
+                        {formatDate(task.dueDate)}
                     </span>
-                {task.dueDate && (<span
-                    className={`text-xs ${new Date(task.dueDate) < new Date() && task.status !== 'completed' ? 'text-red-400' : 'text-white/70'}`}>
-                            {formatDate(task.dueDate)}
-                        </span>)}
-                {task.comments?.length > 0 && (<span className="text-white/70 text-xs flex items-center space-x-1">
-                            <span>💬</span>
-                            <span>{task.comments.length}</span>
-                        </span>)}
+                    )}
+                    {task.comments?.length > 0 && (
+                        <span className="text-white/70 text-xs flex items-center space-x-1">
+                        <span>💬</span>
+                        <span>{task.comments.length}</span>
+                    </span>
+                    )}
+                </div>
+
+                {(() => {
+                    const role = getUserRoleInProject(currentProject);
+                    const isAuthorized = ['lead', 'owner', 'admin'].includes(role);
+                    const isCompleted = task.status === 'completed';
+
+                    // Show nothing if user isn't authorized or task isn't completed
+                    if (!isAuthorized || !isCompleted) return null;
+
+                    return (
+                        <div className="flex flex-col space-y-1">
+                            <button
+                                onClick={() => handleGenerateTaskReport(task)}
+                                className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                            >
+                                {task.reportGenerated ? 'Regenerate Report' : 'Generate Report'}
+                            </button>
+
+                            {task.reportGenerated && task.reportFile && (
+                                <button
+                                    onClick={() => handleDownload(task.reportFile, task.reportFile)}
+                                    className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+                                >
+                                    Download Report
+                                </button>
+                            )}
+                        </div>
+                    );
+                })()}
+
             </div>
         </div>
-    </div>);
+    );
+
 
     // Task Grid Item Component
     const TaskGridItem = ({task}) => (<div

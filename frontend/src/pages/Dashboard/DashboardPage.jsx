@@ -11,6 +11,7 @@ import {openModal} from "../../features/ui/uiSlice.jsx";
 import {fetchTasks} from "../../features/task/taskSlice.jsx";
 import {fetchWorkspaces} from "../../features/workspace/workspaceSlice.jsx";
 import {fetchProjects} from "../../features/project/projectSlice.jsx";
+import {Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip} from "recharts";
 
 const DashboardPage = () => {
     const dispatch = useAppDispatch();
@@ -40,7 +41,7 @@ const DashboardPage = () => {
 
         const userProjects = projects.filter(project => project.createdBy?._id === user?._id || project.assignedMembers?.some(member => member.user?._id === user?._id));
 
-        const userTasks = tasks.filter(task => task.createdBy?._id === user?._id || task.assignedTo?.some(assignment => assignment.user?._id === user?._id));
+        const userTasks = tasks.filter(task => task.assignedTo?.some(assignment => assignment.user?._id === user?._id));
 
         const completedTasks = userTasks.filter(task => task.status === 'completed').length;
         const completionRate = userTasks.length > 0 ? Math.round((completedTasks / userTasks.length) * 100) : 0;
@@ -216,60 +217,121 @@ const DashboardPage = () => {
             </motion.div>
         </div>
 
-        {/* Task Status Overview */}
-        {stats.totalTasks > 0 && (<motion.div
-            initial={{opacity: 0, y: 20}}
-            animate={{opacity: 1, y: 0}}
-            transition={{duration: 0.5, delay: 0.5}}
-            className="glass-card p-6"
-        >
-            <h3 className="text-xl font-bold text-white mb-6">Task Overview</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                {[{label: 'To Do', count: stats.tasksByStatus.todo, color: 'blue'}, {
-                    label: 'In Progress',
-                    count: stats.tasksByStatus.inProgress,
-                    color: 'amber'
-                }, {
-                    label: 'In Review',
-                    count: stats.tasksByStatus.review,
-                    color: 'purple'
-                }, {
-                    label: 'Completed',
-                    count: stats.tasksByStatus.completed,
-                    color: 'emerald'
-                },].map((status) => {
-                    const percentage = stats.totalTasks ? Math.round((status.count / stats.totalTasks) * 100) : 0;
+        {stats.totalTasks > 0 && (
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.5 }}
+                className=" p-6"
+            >
+                <h3 className="text-xl font-bold text-gray-100 mb-6">Task Overview</h3>
 
-                    return (<div
-                        key={status.label}
-                        className="p-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md hover:scale-105 transform transition-all duration-200 cursor-pointer flex flex-col justify-between"
-                    >
-                        {/* Status Count */}
-                        <div className="flex items-center justify-between mb-3">
-                            <div className={`text-3xl font-bold text-${status.color}-300`}>
-                                {status.count}
-                            </div>
-                            <div className={`text-sm font-medium text-${status.color}-200`}>
-                                {status.label}
-                            </div>
-                        </div>
+                {/* Task Status Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                    {[
+                        { label: 'To Do', count: stats.tasksByStatus.todo, color: '#0d5ada', bg: 'rgba(59,130,246,0.15)' },       // bright blue
+                        { label: 'In Progress', count: stats.tasksByStatus.inProgress, color: '#F59E0B', bg: 'rgba(245,158,11,0.15)' }, // amber
+                        { label: 'In Review', count: stats.tasksByStatus.review, color: '#4600e3', bg: 'rgba(139,92,246,0.15)' },       // purple
+                        { label: 'Completed', count: stats.tasksByStatus.completed, color: '#10B981', bg: 'rgba(16,185,129,0.15)' },    // emerald
+                    ].map((status) => {
+                        const percentage = stats.totalTasks
+                            ? Math.round((status.count / stats.totalTasks) * 100)
+                            : 0;
 
-                        {/* Progress Bar */}
-                        <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden mt-auto">
+                        return (
                             <div
-                                className={`h-full rounded-full bg-${status.color}-400 transition-all duration-500`}
-                                style={{width: `${percentage}%`}}
-                            ></div>
-                        </div>
+                                key={status.label}
+                                className="p-5 rounded-xl border border-white/10 backdrop-blur-xl
+                       transition-all duration-300 flex flex-col justify-between
+                       hover:shadow-lg hover:scale-105"
+                                style={{ backgroundColor: status.bg }}
+                            >
+                                {/* Status Count */}
+                                <div className="flex items-center justify-between mb-3">
+                                    <div
+                                        className="text-3xl font-extrabold drop-shadow-md"
+                                        style={{ color: status.color }}
+                                    >
+                                        {status.count}
+                                    </div>
+                                    <div
+                                        className="text-sm font-semibold uppercase tracking-wide"
+                                        style={{ color: '#E2E8F0' }}
+                                    >
+                                        {status.label}
+                                    </div>
+                                </div>
 
-                        {/* Percentage Label */}
-                        <div className="text-xs text-white/50 mt-2 text-right">
-                            {percentage}% of total tasks
-                        </div>
-                    </div>);
-                })}
-            </div>
-        </motion.div>)}
+                                {/* Progress Bar */}
+                                <div className="w-full h-2.5 bg-white/10 rounded-full overflow-hidden mt-auto">
+                                    <div
+                                        className="h-full rounded-full transition-all duration-500"
+                                        style={{
+                                            width: `${percentage}%`,
+                                            backgroundColor: status.color,
+                                        }}
+                                    ></div>
+                                </div>
+
+                                {/* Percentage Label */}
+                                <div className="text-xs text-gray-300 mt-2 text-right">
+                                    {percentage}% of total tasks
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                {/* Pie Chart Section */}
+                <div className="flex flex-col items-center justify-center mt-10">
+                    <h4 className="text-lg font-semibold text-gray-100 mb-4">
+                        Task Status Distribution
+                    </h4>
+                    <ResponsiveContainer width="100%" height={300}>
+                        <PieChart>
+                            <Pie
+                                data={[
+                                    { name: 'To Do', value: stats.tasksByStatus.todo },
+                                    { name: 'In Progress', value: stats.tasksByStatus.inProgress },
+                                    { name: 'In Review', value: stats.tasksByStatus.review },
+                                    { name: 'Completed', value: stats.tasksByStatus.completed },
+                                ]}
+                                cx="50%"
+                                cy="50%"
+                                outerRadius={110}
+                                dataKey="value"
+                                label={({ name, percent }) =>
+                                    `${name}: ${(percent * 100).toFixed(0)}%`
+                                }
+                            >
+                                <Cell fill="#0d5ada" />  {/* blue */}
+                                <Cell fill="#F59E0B" />  {/* amber */}
+                                <Cell fill="#4600e3" />  {/* purple */}
+                                <Cell fill="#10B981" />  {/* emerald */}
+                            </Pie>
+                            <Tooltip
+                                contentStyle={{
+                                    backgroundColor: 'rgba(15,23,42,0.9)',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    borderRadius: '10px',
+                                    color: '#F8FAFC',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                                }}
+                            />
+                            <Legend
+                                verticalAlign="bottom"
+                                align="center"
+                                wrapperStyle={{
+                                    color: '#E2E8F0',
+                                    marginTop: '10px',
+                                    fontSize: '0.9rem',
+                                }}
+                            />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </div>
+            </motion.div>
+        )}
 
         {/* Main content grid */}
         {hasData ? (<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

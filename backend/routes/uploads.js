@@ -1,22 +1,24 @@
 const express = require('express');
 const router = express.Router();
 const {auth} = require('../middleware/auth');
-const {uploadSingle, uploadMultiple, handleUploadError, deleteFile, getFileInfo} = require('../middleware/upload');
+const {
+    uploadSingle, uploadMultiple, handleUploadError, deleteFile, getFileInfo, uploadDir
+} = require('../middleware/upload');
 const Task = require('../models/Task');
 const Project = require('../models/Project');
 
 // Upload single file for task
 router.post('/task/:taskId', auth, uploadSingle('file'), handleUploadError, async (req, res) => {
     try {
-        const { taskId } = req.params;
+        const {taskId} = req.params;
         console.log(req.user)
         if (!req.file) {
-            return res.status(400).json({ success: false, message: 'No file uploaded' });
+            return res.status(400).json({success: false, message: 'No file uploaded'});
         }
 
         const task = await Task.findById(taskId).populate('project');
         if (!task) {
-            return res.status(404).json({ success: false, message: 'Task not found' });
+            return res.status(404).json({success: false, message: 'Task not found'});
         }
 
         // Ensure members array exists
@@ -43,12 +45,12 @@ router.post('/task/:taskId', auth, uploadSingle('file'), handleUploadError, asyn
         res.json({
             success: true,
             message: 'File uploaded successfully',
-            data: { file: fileData, taskId: task._id, attachments: task.attachments }
+            data: {file: fileData, taskId: task._id, attachments: task.attachments}
         });
 
     } catch (error) {
         console.error('File upload error:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+        res.status(500).json({success: false, message: 'Server error'});
     }
 });
 
@@ -107,25 +109,42 @@ router.post('/task/:taskId/multiple', auth, uploadMultiple('files', 10), handleU
     }
 });
 
+const path = require('path');
+const fs = require('fs');
+
 // Download file
-router.get('/download/:filename', auth, async (req, res) => {
+router.get('/download/:filename', async (req, res) => {
     try {
         const {filename} = req.params;
+        console.log(filename)
+        let filePath;
 
-        const fileInfo = getFileInfo(filename);
-        if (!fileInfo) {
+        // If filename starts with "task", use report folder
+        if (filename.toLowerCase().startsWith('task')) {
+            filePath = path.join(uploadDir, './reports', filename); // Adjust path to your report folder
+        } else {
+            // Otherwise, use getFileInfo function (existing logic)
+            const fileInfo = getFileInfo(filename);
+            if (!fileInfo) {
+                return res.status(404).json({
+                    success: false, message: 'File not found'
+                });
+            }
+            filePath = fileInfo.path;
+        }
+        console.log(filePath)
+        // Check if file exists
+        if (!fs.existsSync(filePath)) {
             return res.status(404).json({
                 success: false, message: 'File not found'
             });
         }
-
-        // Set appropriate headers
+        console.log(filePath)
+        // Set headers and stream
         res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
         res.setHeader('Content-Type', 'application/octet-stream');
 
-        // Stream the file
-        const fs = require('fs');
-        const fileStream = fs.createReadStream(fileInfo.path);
+        const fileStream = fs.createReadStream(filePath);
         fileStream.pipe(res);
 
     } catch (error) {

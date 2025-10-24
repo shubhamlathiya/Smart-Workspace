@@ -1,10 +1,15 @@
 const express = require('express');
-const { body, validationResult } = require('express-validator');
+const {body, validationResult} = require('express-validator');
 const Task = require('../models/Task');
 const Project = require('../models/Project');
-const { auth, checkProjectAccess } = require('../middleware/auth');
+const {auth, checkProjectAccess} = require('../middleware/auth');
 const {sendTaskAssignment} = require("../services/emailService");
 const User = require('../models/User');
+const PDFDocument = require('pdfkit');
+const fs = require('fs');
+const path = require('path');
+const {uploadDir} = require("../middleware/upload");
+
 
 const router = express.Router();
 
@@ -176,47 +181,49 @@ const router = express.Router();
  *         description: Server error
  */
 router.get('/', auth, async (req, res) => {
-  try {
-    const { project, workspace, status, priority, assignedTo } = req.query;
-    const filter = { isArchived: false };
+    try {
+        console.log('Query Params:', req.query);
 
-    // Build filter based on query parameters
-    if (project) filter.project = project;
-    if (workspace) filter.workspace = workspace;
-    if (status) filter.status = status;
-    if (priority) filter.priority = priority;
-    if (assignedTo) filter['assignedTo.user'] = assignedTo;
+        const {projectId, workspace, status, priority, assignedTo} = req.query;
+        const filter = {isArchived: false};
 
-    // Find tasks where user is either creator or assigned
-    const tasks = await Task.find({
-      ...filter,
-      $or: [
-        { createdBy: req.user.userId },
-        { 'assignedTo.user': req.user.userId }
-      ]
-    })
-    .populate('project', 'name')
-    .populate('workspace', 'name')
-    .populate('createdBy', 'name email avatar')
-    .populate('assignedTo.user', 'name email avatar')
-        .populate({
-          path: 'comments.user',   // populate the user for each comment
-          select: 'name email avatar'
+        // Apply filters dynamically
+        if (projectId) filter.project = projectId;
+        if (workspace) filter.workspace = workspace;
+        if (status) filter.status = status;
+        if (priority) filter.priority = priority;
+        if (assignedTo) filter['assignedTo.user'] = assignedTo;
+
+        // Find tasks where user is either creator or assigned
+        const tasks = await Task.find({
+            ...filter,
+            $or: [
+                {createdBy: req.user.userId},
+                {'assignedTo.user': req.user.userId}
+            ]
         })
-    .sort({ createdAt: -1 });
+            .populate('project', 'name')
+            .populate('workspace', 'name')
+            .populate('createdBy', 'name email avatar')
+            .populate('assignedTo.user', 'name email avatar')
+            .populate({
+                path: 'comments.user', // populate the user for each comment
+                select: 'name email avatar'
+            })
+            .sort({createdAt: -1});
 
-    res.json({
-      success: true,
-      message: 'Tasks retrieved successfully',
-      data: tasks
-    });
-  } catch (error) {
-    console.error('Get tasks error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error retrieving tasks'
-    });
-  }
+        res.json({
+            success: true,
+            message: 'Tasks retrieved successfully',
+            data: tasks
+        });
+    } catch (error) {
+        console.error('Get tasks error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error retrieving tasks'
+        });
+    }
 });
 
 /**
@@ -299,60 +306,60 @@ router.get('/', auth, async (req, res) => {
  *         description: Server error
  */
 router.post('/', auth, checkProjectAccess, [
-  body('title').trim().isLength({ min: 2, max: 200 }).withMessage('Task title must be between 2 and 200 characters'),
-  body('description').optional().trim().isLength({ max: 2000 }).withMessage('Description cannot exceed 2000 characters'),
-  body('project').isMongoId().withMessage('Valid project ID is required'),
-  body('priority').optional().isIn(['low', 'medium', 'high', 'urgent']).withMessage('Invalid priority level'),
-  body('estimatedHours').optional().isFloat({ min: 0 }).withMessage('Estimated hours must be a positive number')
+    body('title').trim().isLength({min: 2, max: 200}).withMessage('Task title must be between 2 and 200 characters'),
+    body('description').optional().trim().isLength({max: 2000}).withMessage('Description cannot exceed 2000 characters'),
+    body('project').isMongoId().withMessage('Valid project ID is required'),
+    body('priority').optional().isIn(['low', 'medium', 'high', 'urgent']).withMessage('Invalid priority level'),
+    body('estimatedHours').optional().isFloat({min: 0}).withMessage('Estimated hours must be a positive number')
 ], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors: errors.array()
+            });
+        }
+
+        const {title, description, assignedTo, priority, tags, dueDate, estimatedHours, subtasks} = req.body;
+
+        const task = new Task({
+            title,
+            description,
+            project: req.project._id,
+            workspace: req.project.workspace._id,
+            createdBy: req.user.userId,
+            assignedTo: assignedTo ? assignedTo.map(userId => ({user: userId, assignedBy: req.user.userId})) : [],
+            priority: priority || 'medium',
+            tags: tags || [],
+            dueDate: dueDate ? new Date(dueDate) : undefined,
+            estimatedHours: estimatedHours || 0,
+            subtasks: subtasks || []
+        });
+
+        await task.save();
+
+        // Populate the task data
+        await task.populate([
+            {path: 'project', select: 'name'},
+            {path: 'workspace', select: 'name'},
+            {path: 'createdBy', select: 'name email avatar'},
+            {path: 'assignedTo.user', select: 'name email avatar'}
+        ]);
+
+        res.status(201).json({
+            success: true,
+            message: 'Task created successfully',
+            data: task
+        });
+    } catch (error) {
+        console.error('Create task error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error creating task'
+        });
     }
-
-    const { title, description, assignedTo, priority, tags, dueDate, estimatedHours, subtasks } = req.body;
-
-    const task = new Task({
-      title,
-      description,
-      project: req.project._id,
-      workspace: req.project.workspace._id,
-      createdBy: req.user.userId,
-      assignedTo: assignedTo ? assignedTo.map(userId => ({ user: userId, assignedBy: req.user.userId })) : [],
-      priority: priority || 'medium',
-      tags: tags || [],
-      dueDate: dueDate ? new Date(dueDate) : undefined,
-      estimatedHours: estimatedHours || 0,
-      subtasks: subtasks || []
-    });
-
-    await task.save();
-
-    // Populate the task data
-    await task.populate([
-      { path: 'project', select: 'name' },
-      { path: 'workspace', select: 'name' },
-      { path: 'createdBy', select: 'name email avatar' },
-      { path: 'assignedTo.user', select: 'name email avatar' }
-    ]);
-
-    res.status(201).json({
-      success: true,
-      message: 'Task created successfully',
-      data: task
-    });
-  } catch (error) {
-    console.error('Create task error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error creating task'
-    });
-  }
 });
 
 /**
@@ -392,61 +399,61 @@ router.post('/', auth, checkProjectAccess, [
  *         description: Server error
  */
 router.get('/:id', auth, async (req, res) => {
-  try {
-    const task = await Task.findOne({
-      _id: req.params.id,
-      isArchived: false
-    })
-        .populate('project', 'name')
-        .populate('workspace', 'name')
-        .populate('createdBy', 'name email avatar')
-        .populate('assignedTo.user', 'name email avatar')
-        .populate({
-          path: 'comments.user',   // populate the user for each comment
-          select: 'name email avatar'
+    try {
+        const task = await Task.findOne({
+            _id: req.params.id,
+            isArchived: false
+        })
+            .populate('project', 'name')
+            .populate('workspace', 'name')
+            .populate('createdBy', 'name email avatar')
+            .populate('assignedTo.user', 'name email avatar')
+            .populate({
+                path: 'comments.user',   // populate the user for each comment
+                select: 'name email avatar'
+            });
+
+        if (!task) {
+            return res.status(404).json({
+                success: false,
+                message: 'Task not found'
+            });
+        }
+
+        console.log(task)
+        // Optionally, populate replies if your comment schema has nested replies
+        if (task.comments && task.comments.length > 0) {
+            await Task.populate(task.comments, {
+                path: 'replies.user',
+                select: 'name email avatar'
+            });
+        }
+
+        // Check if user has access to this task
+        const hasAccess = task.createdBy._id.toString() === req.user.userId ||
+            task.assignedTo.some(assignment => assignment.user._id.toString() === req.user.userId) ||
+            req.userDoc.role === 'admin';
+
+        if (!hasAccess) {
+            return res.status(403).json({
+                success: false,
+                message: 'Access denied. You are not assigned to this task.'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Task retrieved successfully',
+            data: task
         });
 
-    if (!task) {
-      return res.status(404).json({
-        success: false,
-        message: 'Task not found'
-      });
+    } catch (error) {
+        console.error('Get task error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error retrieving task'
+        });
     }
-
-    console.log(task)
-    // Optionally, populate replies if your comment schema has nested replies
-    if (task.comments && task.comments.length > 0) {
-      await Task.populate(task.comments, {
-        path: 'replies.user',
-        select: 'name email avatar'
-      });
-    }
-
-    // Check if user has access to this task
-    const hasAccess = task.createdBy._id.toString() === req.user.userId ||
-        task.assignedTo.some(assignment => assignment.user._id.toString() === req.user.userId) ||
-        req.userDoc.role === 'admin';
-
-    if (!hasAccess) {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied. You are not assigned to this task.'
-      });
-    }
-
-    res.json({
-      success: true,
-      message: 'Task retrieved successfully',
-      data: task
-    });
-
-  } catch (error) {
-    console.error('Get task error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error retrieving task'
-    });
-  }
 });
 
 
@@ -513,84 +520,87 @@ router.get('/:id', auth, async (req, res) => {
  *         description: Server error
  */
 router.put('/:id', auth, [
-  body('title').optional().trim().isLength({ min: 2, max: 200 }).withMessage('Task title must be between 2 and 200 characters'),
-  body('description').optional().trim().isLength({ max: 2000 }).withMessage('Description cannot exceed 2000 characters'),
-  body('status').optional().isIn(['todo', 'in-progress', 'review', 'completed']).withMessage('Invalid status'),
-  body('priority').optional().isIn(['low', 'medium', 'high', 'urgent']).withMessage('Invalid priority'),
-  body('estimatedHours').optional().isFloat({ min: 0 }).withMessage('Estimated hours must be a positive number'),
-  body('actualHours').optional().isFloat({ min: 0 }).withMessage('Actual hours must be a positive number')
+    body('title').optional().trim().isLength({
+        min: 2,
+        max: 200
+    }).withMessage('Task title must be between 2 and 200 characters'),
+    body('description').optional().trim().isLength({max: 2000}).withMessage('Description cannot exceed 2000 characters'),
+    body('status').optional().isIn(['todo', 'in-progress', 'review', 'completed']).withMessage('Invalid status'),
+    body('priority').optional().isIn(['low', 'medium', 'high', 'urgent']).withMessage('Invalid priority'),
+    body('estimatedHours').optional().isFloat({min: 0}).withMessage('Estimated hours must be a positive number'),
+    body('actualHours').optional().isFloat({min: 0}).withMessage('Actual hours must be a positive number')
 ], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
-
-    const task = await Task.findOne({ 
-      _id: req.params.id, 
-      isArchived: false 
-    });
-
-    if (!task) {
-      return res.status(404).json({
-        success: false,
-        message: 'Task not found'
-      });
-    }
-
-    // Check if user has permission to update
-    const isCreator = task.createdBy.toString() === req.user.userId;
-    const isAssigned = task.isAssigned(req.user.userId);
-    const isAdmin = req.userDoc.role === 'admin';
-
-    if (!isCreator && !isAssigned && !isAdmin) {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied. Only task creator, assigned users, or admin can update.'
-      });
-    }
-
-    const updateData = {};
-    const allowedFields = ['title', 'description', 'status', 'priority', 'tags', 'dueDate', 'estimatedHours', 'actualHours', 'subtasks'];
-    
-    allowedFields.forEach(field => {
-      if (req.body[field] !== undefined) {
-        if (field === 'dueDate' && req.body[field]) {
-          updateData[field] = new Date(req.body[field]);
-        } else {
-          updateData[field] = req.body[field];
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors: errors.array()
+            });
         }
-      }
-    });
 
-    const updatedTask = await Task.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true, runValidators: true }
-    ).populate([
-      { path: 'project', select: 'name' },
-      { path: 'workspace', select: 'name' },
-      { path: 'createdBy', select: 'name email avatar' },
-      { path: 'assignedTo.user', select: 'name email avatar' },
-      { path: 'comments.user', select: 'name email avatar' }
-    ]);
+        const task = await Task.findOne({
+            _id: req.params.id,
+            isArchived: false
+        });
 
-    res.json({
-      success: true,
-      message: 'Task updated successfully',
-      data: updatedTask
-    });
-  } catch (error) {
-    console.error('Update task error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error updating task'
-    });
-  }
+        if (!task) {
+            return res.status(404).json({
+                success: false,
+                message: 'Task not found'
+            });
+        }
+
+        // Check if user has permission to update
+        const isCreator = task.createdBy.toString() === req.user.userId;
+        const isAssigned = task.isAssigned(req.user.userId);
+        const isAdmin = req.userDoc.role === 'admin';
+
+        if (!isCreator && !isAssigned && !isAdmin) {
+            return res.status(403).json({
+                success: false,
+                message: 'Access denied. Only task creator, assigned users, or admin can update.'
+            });
+        }
+
+        const updateData = {};
+        const allowedFields = ['title', 'description', 'status', 'priority', 'tags', 'dueDate', 'estimatedHours', 'actualHours', 'subtasks'];
+
+        allowedFields.forEach(field => {
+            if (req.body[field] !== undefined) {
+                if (field === 'dueDate' && req.body[field]) {
+                    updateData[field] = new Date(req.body[field]);
+                } else {
+                    updateData[field] = req.body[field];
+                }
+            }
+        });
+
+        const updatedTask = await Task.findByIdAndUpdate(
+            req.params.id,
+            updateData,
+            {new: true, runValidators: true}
+        ).populate([
+            {path: 'project', select: 'name'},
+            {path: 'workspace', select: 'name'},
+            {path: 'createdBy', select: 'name email avatar'},
+            {path: 'assignedTo.user', select: 'name email avatar'},
+            {path: 'comments.user', select: 'name email avatar'}
+        ]);
+
+        res.json({
+            success: true,
+            message: 'Task updated successfully',
+            data: updatedTask
+        });
+    } catch (error) {
+        console.error('Update task error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error updating task'
+        });
+    }
 });
 
 /**
@@ -633,90 +643,90 @@ router.put('/:id', auth, [
  *         description: Server error
  */
 router.post('/:id/assign', auth, [
-  body('userIds').isArray({ min: 1 }).withMessage('At least one user ID is required'),
-  body('userIds.*').isMongoId().withMessage('Valid user IDs are required')
+    body('userIds').isArray({min: 1}).withMessage('At least one user ID is required'),
+    body('userIds.*').isMongoId().withMessage('Valid user IDs are required')
 ], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors: errors.array()
+            });
+        }
+
+        const task = await Task.findOne({
+            _id: req.params.id,
+            isArchived: false
+        });
+
+        if (!task) {
+            return res.status(404).json({
+                success: false,
+                message: 'Task not found'
+            });
+        }
+
+        // Check if user has permission to assign
+        const isCreator = task.createdBy.toString() === req.user.userId;
+        const isAssigned = task.isAssigned(req.user.userId);
+        const isAdmin = req.userDoc.role === 'admin';
+
+        if (!isCreator && !isAssigned && !isAdmin) {
+            return res.status(403).json({
+                success: false,
+                message: 'Access denied. Only task creator, assigned users, or admin can assign tasks.'
+            });
+        }
+
+        const {userIds} = req.body;
+
+        const newlyAssignedUsers = [];
+
+        // Add new assignees
+        for (const userId of userIds) {
+            if (!task.isAssigned(userId)) {
+                await task.addAssignee(userId, req.user.userId);
+                newlyAssignedUsers.push(userId); // Collect newly added users
+            }
+        }
+
+        // Populate the updated task
+        await task.populate([
+            {path: 'project', select: 'name'},
+            {path: 'workspace', select: 'name'},
+            {path: 'createdBy', select: 'name email avatar'},
+            {path: 'assignedTo.user', select: 'name email avatar'}
+        ]);
+
+        // Send assignment emails
+        for (const userId of newlyAssignedUsers) {
+            const userDoc = await User.findById(userId).select('name email');
+            if (userDoc?.email) {
+                const taskLink = `${process.env.CLIENT_URL}/tasks/${task._id}`; // link to task in frontend
+                sendTaskAssignment(
+                    userDoc.email,
+                    task.title,
+                    task.project.name,
+                    req.userDoc.name,
+                    taskLink
+                );
+            }
+        }
+
+        res.json({
+            success: true,
+            message: 'Task assigned successfully',
+            data: task
+        });
+    } catch (error) {
+        console.error('Assign task error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error assigning task'
+        });
     }
-
-    const task = await Task.findOne({
-      _id: req.params.id,
-      isArchived: false
-    });
-
-    if (!task) {
-      return res.status(404).json({
-        success: false,
-        message: 'Task not found'
-      });
-    }
-
-    // Check if user has permission to assign
-    const isCreator = task.createdBy.toString() === req.user.userId;
-    const isAssigned = task.isAssigned(req.user.userId);
-    const isAdmin = req.userDoc.role === 'admin';
-
-    if (!isCreator && !isAssigned && !isAdmin) {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied. Only task creator, assigned users, or admin can assign tasks.'
-      });
-    }
-
-    const { userIds } = req.body;
-
-    const newlyAssignedUsers = [];
-
-    // Add new assignees
-    for (const userId of userIds) {
-      if (!task.isAssigned(userId)) {
-        await task.addAssignee(userId, req.user.userId);
-        newlyAssignedUsers.push(userId); // Collect newly added users
-      }
-    }
-
-    // Populate the updated task
-    await task.populate([
-      { path: 'project', select: 'name' },
-      { path: 'workspace', select: 'name' },
-      { path: 'createdBy', select: 'name email avatar' },
-      { path: 'assignedTo.user', select: 'name email avatar' }
-    ]);
-
-    // Send assignment emails
-    for (const userId of newlyAssignedUsers) {
-      const userDoc = await User.findById(userId).select('name email');
-      if (userDoc?.email) {
-        const taskLink = `${process.env.CLIENT_URL}/tasks/${task._id}`; // link to task in frontend
-        sendTaskAssignment(
-            userDoc.email,
-            task.title,
-            task.project.name,
-            req.userDoc.name,
-            taskLink
-        );
-      }
-    }
-
-    res.json({
-      success: true,
-      message: 'Task assigned successfully',
-      data: task
-    });
-  } catch (error) {
-    console.error('Assign task error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error assigning task'
-    });
-  }
 });
 
 /**
@@ -757,68 +767,71 @@ router.post('/:id/assign', auth, [
  *         description: Server error
  */
 router.post('/:id/comments', auth, [
-  body('content').trim().isLength({ min: 1, max: 1000 }).withMessage('Comment content must be between 1 and 1000 characters')
+    body('content').trim().isLength({
+        min: 1,
+        max: 1000
+    }).withMessage('Comment content must be between 1 and 1000 characters')
 ], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors: errors.array()
+            });
+        }
+
+        const task = await Task.findOne({
+            _id: req.params.id,
+            isArchived: false
+        });
+
+        if (!task) {
+            return res.status(404).json({
+                success: false,
+                message: 'Task not found'
+            });
+        }
+
+        // Check if user has access to comment
+        const hasAccess = task.createdBy.toString() === req.user.userId ||
+            task.assignedTo.some(assignment => assignment.user.toString() === req.user.userId) ||
+            req.userDoc.role === 'admin';
+
+        if (!hasAccess) {
+            return res.status(403).json({
+                success: false,
+                message: 'Access denied. You are not assigned to this task.'
+            });
+        }
+
+        const {content} = req.body;
+
+        // Add comment
+        await task.addComment(req.user.userId, content);
+
+        // Populate the updated task
+        await task.populate([
+            {path: 'project', select: 'name'},
+            {path: 'workspace', select: 'name'},
+            {path: 'createdBy', select: 'name email avatar'},
+            {path: 'assignedTo.user', select: 'name email avatar'},
+            {path: 'comments.user', select: 'name email avatar'}
+        ]);
+
+        res.json({
+            success: true,
+            message: 'Comment added successfully',
+            data: task
+        });
+    } catch (error) {
+        console.error('Add comment error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error adding comment'
+        });
     }
-
-    const task = await Task.findOne({ 
-      _id: req.params.id, 
-      isArchived: false 
-    });
-
-    if (!task) {
-      return res.status(404).json({
-        success: false,
-        message: 'Task not found'
-      });
-    }
-
-    // Check if user has access to comment
-    const hasAccess = task.createdBy.toString() === req.user.userId ||
-                     task.assignedTo.some(assignment => assignment.user.toString() === req.user.userId) ||
-                     req.userDoc.role === 'admin';
-
-    if (!hasAccess) {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied. You are not assigned to this task.'
-      });
-    }
-
-    const { content } = req.body;
-
-    // Add comment
-    await task.addComment(req.user.userId, content);
-
-    // Populate the updated task
-    await task.populate([
-      { path: 'project', select: 'name' },
-      { path: 'workspace', select: 'name' },
-      { path: 'createdBy', select: 'name email avatar' },
-      { path: 'assignedTo.user', select: 'name email avatar' },
-      { path: 'comments.user', select: 'name email avatar' }
-    ]);
-
-    res.json({
-      success: true,
-      message: 'Comment added successfully',
-      data: task
-    });
-  } catch (error) {
-    console.error('Add comment error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error adding comment'
-    });
-  }
 });
 
 /**
@@ -865,72 +878,75 @@ router.post('/:id/comments', auth, [
  *         description: Server error
  */
 router.put('/:id/comments/:commentId', auth, [
-  body('content').trim().isLength({ min: 1, max: 1000 }).withMessage('Comment content must be between 1 and 1000 characters')
+    body('content').trim().isLength({
+        min: 1,
+        max: 1000
+    }).withMessage('Comment content must be between 1 and 1000 characters')
 ], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors: errors.array()
+            });
+        }
+
+        const task = await Task.findOne({
+            _id: req.params.id,
+            isArchived: false
+        });
+
+        if (!task) {
+            return res.status(404).json({
+                success: false,
+                message: 'Task not found'
+            });
+        }
+
+        const comment = task.comments.id(req.params.commentId);
+        if (!comment) {
+            return res.status(404).json({
+                success: false,
+                message: 'Comment not found'
+            });
+        }
+
+        // Check if user can edit this comment (only comment author or admin)
+        if (comment.user.toString() !== req.user.userId && req.userDoc.role !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Access denied. Only comment author or admin can edit comments.'
+            });
+        }
+
+        const {content} = req.body;
+
+        // Update comment
+        await task.updateComment(req.params.commentId, content);
+
+        // Populate the updated task
+        await task.populate([
+            {path: 'project', select: 'name'},
+            {path: 'workspace', select: 'name'},
+            {path: 'createdBy', select: 'name email avatar'},
+            {path: 'assignedTo.user', select: 'name email avatar'},
+            {path: 'comments.user', select: 'name email avatar'}
+        ]);
+
+        res.json({
+            success: true,
+            message: 'Comment updated successfully',
+            data: task
+        });
+    } catch (error) {
+        console.error('Update comment error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error updating comment'
+        });
     }
-
-    const task = await Task.findOne({ 
-      _id: req.params.id, 
-      isArchived: false 
-    });
-
-    if (!task) {
-      return res.status(404).json({
-        success: false,
-        message: 'Task not found'
-      });
-    }
-
-    const comment = task.comments.id(req.params.commentId);
-    if (!comment) {
-      return res.status(404).json({
-        success: false,
-        message: 'Comment not found'
-      });
-    }
-
-    // Check if user can edit this comment (only comment author or admin)
-    if (comment.user.toString() !== req.user.userId && req.userDoc.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied. Only comment author or admin can edit comments.'
-      });
-    }
-
-    const { content } = req.body;
-
-    // Update comment
-    await task.updateComment(req.params.commentId, content);
-
-    // Populate the updated task
-    await task.populate([
-      { path: 'project', select: 'name' },
-      { path: 'workspace', select: 'name' },
-      { path: 'createdBy', select: 'name email avatar' },
-      { path: 'assignedTo.user', select: 'name email avatar' },
-      { path: 'comments.user', select: 'name email avatar' }
-    ]);
-
-    res.json({
-      success: true,
-      message: 'Comment updated successfully',
-      data: task
-    });
-  } catch (error) {
-    console.error('Update comment error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error updating comment'
-    });
-  }
 });
 
 /**
@@ -963,59 +979,59 @@ router.put('/:id/comments/:commentId', auth, [
  *         description: Server error
  */
 router.delete('/:id/comments/:commentId', auth, async (req, res) => {
-  try {
-    const task = await Task.findOne({ 
-      _id: req.params.id, 
-      isArchived: false 
-    });
+    try {
+        const task = await Task.findOne({
+            _id: req.params.id,
+            isArchived: false
+        });
 
-    if (!task) {
-      return res.status(404).json({
-        success: false,
-        message: 'Task not found'
-      });
+        if (!task) {
+            return res.status(404).json({
+                success: false,
+                message: 'Task not found'
+            });
+        }
+
+        const comment = task.comments.id(req.params.commentId);
+        if (!comment) {
+            return res.status(404).json({
+                success: false,
+                message: 'Comment not found'
+            });
+        }
+
+        // Check if user can delete this comment (only comment author or admin)
+        if (comment.user.toString() !== req.user.userId && req.userDoc.role !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Access denied. Only comment author or admin can delete comments.'
+            });
+        }
+
+        // Delete comment
+        await task.deleteComment(req.params.commentId);
+
+        // Populate the updated task
+        await task.populate([
+            {path: 'project', select: 'name'},
+            {path: 'workspace', select: 'name'},
+            {path: 'createdBy', select: 'name email avatar'},
+            {path: 'assignedTo.user', select: 'name email avatar'},
+            {path: 'comments.user', select: 'name email avatar'}
+        ]);
+
+        res.json({
+            success: true,
+            message: 'Comment deleted successfully',
+            data: task
+        });
+    } catch (error) {
+        console.error('Delete comment error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error deleting comment'
+        });
     }
-
-    const comment = task.comments.id(req.params.commentId);
-    if (!comment) {
-      return res.status(404).json({
-        success: false,
-        message: 'Comment not found'
-      });
-    }
-
-    // Check if user can delete this comment (only comment author or admin)
-    if (comment.user.toString() !== req.user.userId && req.userDoc.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied. Only comment author or admin can delete comments.'
-      });
-    }
-
-    // Delete comment
-    await task.deleteComment(req.params.commentId);
-
-    // Populate the updated task
-    await task.populate([
-      { path: 'project', select: 'name' },
-      { path: 'workspace', select: 'name' },
-      { path: 'createdBy', select: 'name email avatar' },
-      { path: 'assignedTo.user', select: 'name email avatar' },
-      { path: 'comments.user', select: 'name email avatar' }
-    ]);
-
-    res.json({
-      success: true,
-      message: 'Comment deleted successfully',
-      data: task
-    });
-  } catch (error) {
-    console.error('Delete comment error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error deleting comment'
-    });
-  }
 });
 
 /**
@@ -1042,45 +1058,149 @@ router.delete('/:id/comments/:commentId', auth, async (req, res) => {
  *         description: Server error
  */
 router.delete('/:id', auth, async (req, res) => {
-  try {
-    const task = await Task.findOne({ 
-      _id: req.params.id, 
-      isArchived: false 
-    });
+    try {
+        const task = await Task.findOne({
+            _id: req.params.id,
+            isArchived: false
+        });
 
-    if (!task) {
-      return res.status(404).json({
-        success: false,
-        message: 'Task not found'
-      });
+        if (!task) {
+            return res.status(404).json({
+                success: false,
+                message: 'Task not found'
+            });
+        }
+
+        // Only creator or admin can delete task
+        const isCreator = task.createdBy.toString() === req.user.userId;
+        const isAdmin = req.userDoc.role === 'admin';
+
+        if (!isCreator && !isAdmin) {
+            return res.status(403).json({
+                success: false,
+                message: 'Access denied. Only task creator or admin can delete the task.'
+            });
+        }
+
+        // Soft delete by setting isArchived to true
+        task.isArchived = true;
+        await task.save();
+
+        res.json({
+            success: true,
+            message: 'Task deleted successfully'
+        });
+    } catch (error) {
+        console.error('Delete task error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error deleting task'
+        });
     }
+});
 
-    // Only creator or admin can delete task
-    const isCreator = task.createdBy.toString() === req.user.userId;
-    const isAdmin = req.userDoc.role === 'admin';
 
-    if (!isCreator && !isAdmin) {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied. Only task creator or admin can delete the task.'
-      });
+const Workspace = require('../models/Workspace');
+
+
+const {generatePdfFromHtml, generateReportHtml, icons} = require('./../utils/generateReportHtml');
+
+router.post('/:taskId/generate-task-report', auth, async (req, res) => {
+
+    try {
+        const {taskId} = req.params;
+
+        // --- 1. DATA FETCHING (Keep as is) ---
+        const task = await Task.findById(taskId)
+            .populate('assignedTo.user', 'name email role')
+            .populate('assignedTo.assignedBy', 'name email')
+            .populate('createdBy', 'name email')
+            .populate({
+                path: 'project',
+                select: 'name description startDate dueDate status priority completionPercentage assignedMembers settings isArchived createdAt updatedAt createdBy workspace tags',
+                populate: [
+                    {path: 'assignedMembers.user', select: 'name role email'},
+                    {path: 'createdBy', select: 'name email'},
+                    {path: 'workspace', select: 'name'}
+                ]
+            })
+            .populate('workspace', 'name')
+            .populate('comments.user', 'name email')
+            .populate('dependencies.task', 'title status')
+            .populate('attachments.uploadedBy', 'name email')
+            .lean();
+
+        if (!task) {
+            return res.status(404).json({success: false, message: 'Task not found'});
+        }
+
+        // --- 2. PERMISSIONS CHECK (Keep as is) ---
+        const uid = req.user.userId;
+        const project = await Project.findById(task.project).populate('assignedMembers.user', 'name role');
+        const isLead =
+            project?.createdBy?.toString() === uid ||
+            project?.assignedMembers?.some(m => m.user._id.toString() === uid && m.role === 'lead');
+
+        if (!isLead) {
+            return res.status(403).json({success: false, message: 'Forbidden'});
+        }
+
+        // --- 3. FILE SETUP (Keep as is) ---
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const reportsDir = path.join(uploadDir, 'reports');
+        if (!fs.existsSync(reportsDir)) {
+            fs.mkdirSync(reportsDir, {recursive: true});
+        }
+        const filename = `task-report-${taskId}-${timestamp}.pdf`;
+        const filePath = path.join(reportsDir, filename);
+
+        // --- 4. DATA PREPARATION (REQUIRED BEFORE HTML GENERATION) ---
+        // CRITICAL: This must be defined *after* the task object is fetched.
+        const timelineItems = [
+            {label: 'Start Date', date: task.startDate, icon: icons.calendar},
+            {label: 'Due Date', date: task.dueDate, icon: icons.flag},
+            {label: 'Completed Date', date: task.completedAt, icon: icons.check},
+            {label: 'Last Updated', date: task.updatedAt, icon: icons.clock}
+        ].filter(item => item.date); // Filter out items with no date
+
+        // ================================================================
+        // --- 5. PDF GENERATION (Using HTML/Puppeteer) ---
+        // ================================================================
+        console.log(task)
+        console.log(timelineItems)
+
+        const logoPath = './logo.jpg';
+        // 1. Generate the HTML content string, passing necessary data.
+        const htmlContent = generateReportHtml(task, timelineItems, taskId, logoPath);
+
+        // 2. Use Puppeteer to convert HTML to PDF file
+        await generatePdfFromHtml(htmlContent, filePath);
+
+        // --- 6. FINALIZATION & RESPONSE ---
+
+        // Update task with report info
+        await Task.findByIdAndUpdate(taskId, {
+            reportGenerated: true,
+            reportGeneratedAt: new Date(),
+            reportFile: filename,
+        });
+
+        // Send PDF to client
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.setHeader('Content-Type', 'application/pdf');
+
+        // Read the file and pipe the stream to the response
+        const fileStream = fs.createReadStream(filePath);
+        fileStream.pipe(res);
+
+    } catch (err) {
+        console.error('Generate task report error:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Error generating task report',
+            error: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
     }
-
-    // Soft delete by setting isArchived to true
-    task.isArchived = true;
-    await task.save();
-
-    res.json({
-      success: true,
-      message: 'Task deleted successfully'
-    });
-  } catch (error) {
-    console.error('Delete task error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error deleting task'
-    });
-  }
 });
 
 module.exports = router;

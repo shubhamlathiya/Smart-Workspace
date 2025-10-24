@@ -3,11 +3,7 @@ import {useAppSelector} from "../../hooks/redux.js";
 
 
 const RoleBasedAccess = ({
-                             children,
-                             allowedRoles = [],
-                             allowedPermissions = [],
-                             fallback = null,
-                             requireAll = false
+                             children, allowedRoles = [], allowedPermissions = [], fallback = null, requireAll = false
                          }) => {
     const {user} = useAppSelector(state => state.auth);
 
@@ -30,17 +26,13 @@ const RoleBasedAccess = ({
 
         if (requireAll) {
             // User must have ALL specified permissions
-            const hasAllPermissions = allowedPermissions.every(permission =>
-                userPermissions.includes(permission)
-            );
+            const hasAllPermissions = allowedPermissions.every(permission => userPermissions.includes(permission));
             if (!hasAllPermissions) {
                 return fallback;
             }
         } else {
             // User must have AT LEAST ONE of the specified permissions
-            const hasAnyPermission = allowedPermissions.some(permission =>
-                userPermissions.includes(permission)
-            );
+            const hasAnyPermission = allowedPermissions.some(permission => userPermissions.includes(permission));
             if (!hasAnyPermission) {
                 return fallback;
             }
@@ -53,40 +45,9 @@ const RoleBasedAccess = ({
 // Helper function to get user permissions based on role
 const getUserPermissions = (role) => {
     const permissions = {
-        admin: [
-            'create_workspace',
-            'delete_workspace',
-            'manage_workspace_settings',
-            'invite_members',
-            'remove_members',
-            'create_project',
-            'delete_project',
-            'manage_project_settings',
-            'assign_project_members',
-            'create_task',
-            'delete_task',
-            'assign_task',
-            'manage_all_tasks',
-            'view_all_tasks',
-            'manage_users',
-            'view_analytics',
-            'export_data',
-        ],
-        member: [
-            'create_workspace',
-            'invite_members',
-            'create_project',
-            'assign_project_members',
-            'create_task',
-            'assign_task',
-            'manage_assigned_tasks',
-            'view_assigned_tasks',
-            'comment_on_tasks',
-        ],
-        guest: [
-            'view_assigned_tasks',
-            'comment_on_tasks',
-        ],
+        admin: ['create_workspace', 'delete_workspace', 'manage_workspace_settings', 'invite_members', 'remove_members', 'create_project', 'delete_project', 'manage_project_settings', 'assign_project_members', 'create_task', 'delete_task', 'assign_task', 'manage_all_tasks', 'view_all_tasks', 'manage_users', 'view_analytics', 'export_data',],
+        member: ['create_workspace', 'invite_members', 'create_project', 'assign_project_members', 'create_task', 'assign_task', 'manage_assigned_tasks', 'view_assigned_tasks', 'comment_on_tasks',],
+        guest: ['create_project', 'create_workspace',],
     };
 
     return permissions[role] || [];
@@ -94,11 +55,9 @@ const getUserPermissions = (role) => {
 
 // Higher-order component for role-based access
 export const withRoleAccess = (Component, options = {}) => {
-    return (props) => (
-        <RoleBasedAccess {...options}>
+    return (props) => (<RoleBasedAccess {...options}>
             <Component {...props} />
-        </RoleBasedAccess>
-    );
+        </RoleBasedAccess>);
 };
 
 // Hook for checking permissions
@@ -136,12 +95,7 @@ export const usePermissions = () => {
     };
 
     return {
-        user,
-        hasRole,
-        hasPermission,
-        hasAllPermissions,
-        canAccess,
-        permissions: getUserPermissions(user?.role),
+        user, hasRole, hasPermission, hasAllPermissions, canAccess, permissions: getUserPermissions(user?.role),
     };
 };
 

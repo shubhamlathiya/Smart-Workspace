@@ -40,7 +40,7 @@ const AssignUsersModal = () => {
     const getAvailableUsers = () => {
         if (!currentProject?.assignedMembers) return [];
         return currentProject.assignedMembers.filter(
-            member => member.user && member.user._id !== user._id
+            member => member.user && member.user._id !== user?._id
         );
     };
 
