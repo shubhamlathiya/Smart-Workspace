@@ -440,36 +440,97 @@ const ProjectDetailPage = () => {
     };
 
 
-    // Task Grid Item Component
-    const TaskGridItem = ({task}) => (<div
-        className="p-4 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 transition-all duration-200 cursor-pointer group"
-        onClick={['admin', 'lead', 'member'].includes(getUserRoleInProject(currentProject)) ? () => handleTaskClick(task) : null}
-    >
-        <div className="flex items-start justify-between mb-3">
-            <h4 className="text-white font-semibold text-sm line-clamp-2 flex-1">{task.title}</h4>
-            <span className={`px-2 py-1 rounded-full text-xs border ${getPriorityColor(task.priority)}`}>
-                    {task.priority}
-                </span>
-        </div>
+    const TaskGridItem = ({task}) => {
+        const role = getUserRoleInProject(currentProject);
+        const isAuthorized = ["lead", "owner", "admin"].includes(role);
+        const isCompleted = task.status === "completed";
 
-        {task.description && (<p className="text-white/70 text-sm mb-3 line-clamp-2">{task.description}</p>)}
+        return (
+            <div
+                onClick={
+                    ["admin", "lead", "member"].includes(role)
+                        ? () => handleTaskClick(task)
+                        : null
+                }
+                className="p-5 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 hover:border-white/20 hover:shadow-lg transition-all duration-300 cursor-pointer group"
+            >
+                {/* Title + Priority */}
+                <div className="flex items-start justify-between mb-3">
+                    <h4 className="text-white font-semibold text-sm line-clamp-2 flex-1">
+                        {task.title}
+                    </h4>
+                    <span
+                        className={`px-2 py-1 rounded-full text-xs border ${getPriorityColor(
+                            task.priority
+                        )}`}
+                    >
+          {task.priority}
+        </span>
+                </div>
 
-        <div className="flex items-center justify-between text-xs text-white/70">
-                <span className={`px-2 py-1 rounded-full border ${getStatusBadgeColor(task.status)}`}>
-                    {task.status.replace('-', ' ')}
-                </span>
-            <div className="flex items-center space-x-2">
-                {task.comments?.length > 0 && (<span className="flex items-center space-x-1">
-                            <span>💬</span>
-                            <span>{task.comments.length}</span>
-                        </span>)}
-                {task.dueDate && (<span
-                    className={new Date(task.dueDate) < new Date() && task.status !== 'completed' ? 'text-red-400' : ''}>
-                            {formatDate(task.dueDate)}
-                        </span>)}
+                {/* Description */}
+                {task.description && (
+                    <p className="text-white/70 text-sm mb-3 line-clamp-2">
+                        {task.description}
+                    </p>
+                )}
+
+                {/* Status + Meta Info */}
+                <div className="flex items-center justify-between text-xs text-white/70 mb-3">
+        <span
+            className={`px-2 py-1 rounded-full border ${getStatusBadgeColor(
+                task.status
+            )}`}
+        >
+          {task.status.replace("-", " ")}
+        </span>
+
+                    <div className="flex items-center space-x-2">
+                        {task.comments?.length > 0 && (
+                            <span className="flex items-center space-x-1">
+              <span>💬</span>
+              <span>{task.comments.length}</span>
+            </span>
+                        )}
+
+                        {task.dueDate && (
+                            <span
+                                className={`${
+                                    new Date(task.dueDate) < new Date() &&
+                                    task.status !== "completed"
+                                        ? "text-red-400"
+                                        : "text-white/70"
+                                }`}
+                            >
+              {formatDate(task.dueDate)}
+            </span>
+                        )}
+                    </div>
+                </div>
+
+                {/* Report Buttons (only if completed & authorized) */}
+                {isAuthorized && isCompleted && (
+                    <div className="flex flex-col sm:flex-row sm:space-x-3 space-y-2 sm:space-y-0">
+                        <button
+                            onClick={() => handleGenerateTaskReport(task)}
+                            className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600/60 backdrop-blur-md rounded-lg border border-white/20 hover:bg-blue-700/70 hover:border-white/40 transition"
+                        >
+                            {task.reportGenerated ? "Regenerate Report" : "Generate Report"}
+                        </button>
+
+                        {task.reportGenerated && task.reportFile && (
+                            <button
+                                onClick={() => handleDownload(task.reportFile, task.reportFile)}
+                                className="px-3 py-1.5 text-xs font-medium text-white bg-green-600/60 backdrop-blur-md rounded-lg border border-white/20 hover:bg-green-700/70 hover:border-white/40 transition"
+                            >
+                                Download Report
+                            </button>
+                        )}
+                    </div>
+                )}
             </div>
-        </div>
-    </div>);
+        );
+    };
 
     return (<div className="space-y-6">
         {/* Header */}
