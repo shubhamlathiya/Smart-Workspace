@@ -251,29 +251,79 @@ const TasksPage = () => {
     </div>);
 };
 
-// Simple list and grid item components
-const TaskListItem = ({task, onClick}) => (<div
-    onClick={onClick}
-    className="p-4 bg-gradient-to-r from-white/5 to-white/2 rounded-xl border border-white/10 hover:border-white/20 hover:shadow-lg transition-all duration-200 cursor-pointer"
->
-    <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center space-x-3 overflow-hidden">
-            <h3 className="text-white font-semibold truncate">{task.title}</h3>
-            <span
-                className={`px-2 py-0.5 rounded-full text-xs font-medium ${task.priority === 'high' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : task.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : task.priority === 'urgent' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-green-500/20 text-green-400 border border-green-500/30'}`}>
-                    {task.priority}
-                </span>
-            <span
-                className={`px-2 py-0.5 rounded-full text-xs font-medium ${task.status === 'completed' ? 'bg-green-500/20 text-green-400' : task.status === 'in-progress' ? 'bg-blue-500/20 text-blue-400' : task.status === 'review' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-gray-500/20 text-gray-400'}`}>
-                    {task.status.replace('-', ' ')}
-                </span>
+
+const TaskListItem = ({ task, onClick }) => {
+    const getPriorityStyle = (priority) => {
+        switch (priority) {
+            case "urgent":
+            case "high":
+                return "bg-red-500/20 text-red-400 border border-red-500/30";
+            case "medium":
+                return "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30";
+            default:
+                return "bg-green-500/20 text-green-400 border border-green-500/30";
+        }
+    };
+
+    const getStatusStyle = (status) => {
+        switch (status) {
+            case "completed":
+                return "bg-green-500/20 text-green-400 border border-green-500/30";
+            case "in-progress":
+                return "bg-blue-500/20 text-blue-400 border border-blue-500/30";
+            case "review":
+                return "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30";
+            default:
+                return "bg-gray-500/20 text-gray-400 border border-gray-500/30";
+        }
+    };
+
+    return (
+        <div
+            onClick={onClick}
+            className="p-5 rounded-2xl bg-white/5 backdrop-blur-lg border border-white/10 hover:border-white/20 hover:shadow-lg transition-all duration-300 cursor-pointer group"
+        >
+            {/* Header: Title + Badges + Due Date */}
+            <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center space-x-2 overflow-hidden">
+                    <h3 className="text-white font-semibold truncate max-w-[160px]">
+                        {task.title}
+                    </h3>
+
+                    <span
+                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${getPriorityStyle(
+                            task.priority
+                        )}`}
+                    >
+            {task.priority}
+          </span>
+
+                    <span
+                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusStyle(
+                            task.status
+                        )}`}
+                    >
+            {task.status.replace("-", " ")}
+          </span>
+                </div>
+
+                <div className="text-xs text-white/60">
+                    {task.dueDate
+                        ? new Date(task.dueDate).toLocaleDateString()
+                        : "No due date"}
+                </div>
+            </div>
+
+            {/* Description */}
+            {task.description && (
+                <p className="text-white/60 text-sm line-clamp-2 leading-snug">
+                    {task.description}
+                </p>
+            )}
         </div>
-        <div className="text-white/70 text-sm">
-            {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date'}
-        </div>
-    </div>
-    {task.description && (<p className="text-white/60 text-sm line-clamp-2">{task.description}</p>)}
-</div>);
+    );
+};
+
 
 
 const TaskGridItem = ({task, onClick}) => (<div

@@ -128,6 +128,38 @@ const DashboardPage = () => {
         </div>);
     }
 
+    // Define the status data array once with all necessary properties
+    const taskStatuses = [
+        {
+            label: 'To Do',
+            key: 'todo',
+            color: '#374151', // Slate Gray
+            bg: 'rgba(55,65,81,0.25)', // Muted Glass Background
+            chartFill: '#374151'
+        },
+        {
+            label: 'In Progress',
+            key: 'inProgress',
+            color: '#92400e', // Burnt Orange
+            bg: 'rgba(146,64,14,0.25)',
+            chartFill: '#92400e'
+        },
+        {
+            label: 'In Review',
+            key: 'review',
+            color: '#4338ca', // Indigo
+            bg: 'rgba(67,56,202,0.25)',
+            chartFill: '#4338ca'
+        },
+        {
+            label: 'Completed',
+            key: 'completed',
+            color: '#065f46', // Deep Teal
+            bg: 'rgba(6,95,70,0.25)',
+            chartFill: '#065f46'
+        },
+    ];
+
     const hasData = stats.totalWorkspaces > 0 || stats.totalProjects > 0 || stats.totalTasks > 0;
 
     return (<div className="space-y-6">
@@ -217,46 +249,45 @@ const DashboardPage = () => {
             </motion.div>
         </div>
 
+
+
         {stats.totalTasks > 0 && (
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.5 }}
+                initial={{opacity: 0, y: 20}}
+                animate={{opacity: 1, y: 0}}
+                transition={{duration: 0.5, delay: 0.5}}
                 className=" p-6"
             >
                 <h3 className="text-xl font-bold text-gray-100 mb-6">Task Overview</h3>
 
-                {/* Task Status Cards */}
+                {/* Task Status Cards (Glass View) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                    {[
-                        { label: 'To Do', count: stats.tasksByStatus.todo, color: '#0d5ada', bg: 'rgba(59,130,246,0.15)' },       // bright blue
-                        { label: 'In Progress', count: stats.tasksByStatus.inProgress, color: '#F59E0B', bg: 'rgba(245,158,11,0.15)' }, // amber
-                        { label: 'In Review', count: stats.tasksByStatus.review, color: '#4600e3', bg: 'rgba(139,92,246,0.15)' },       // purple
-                        { label: 'Completed', count: stats.tasksByStatus.completed, color: '#10B981', bg: 'rgba(16,185,129,0.15)' },    // emerald
-                    ].map((status) => {
+                    {taskStatuses.map((status) => {
+                        const count = stats.tasksByStatus[status.key] || 0;
                         const percentage = stats.totalTasks
-                            ? Math.round((status.count / stats.totalTasks) * 100)
+                            ? Math.round((count / stats.totalTasks) * 100)
                             : 0;
 
                         return (
                             <div
                                 key={status.label}
-                                className="p-5 rounded-xl border border-white/10 backdrop-blur-xl
-                       transition-all duration-300 flex flex-col justify-between
-                       hover:shadow-lg hover:scale-105"
-                                style={{ backgroundColor: status.bg }}
+                                // KEY GLASSMORPHISM STYLES: backdrop-blur-xl and border-white/10
+                                className="p-5 rounded-xl border border-white/10 **backdrop-blur-xl**
+transition-all duration-300 flex flex-col justify-between
+hover:shadow-lg hover:scale-105"
+                                style={{backgroundColor: status.bg}} // Uses light RGBA background
                             >
                                 {/* Status Count */}
                                 <div className="flex items-center justify-between mb-3">
                                     <div
                                         className="text-3xl font-extrabold drop-shadow-md"
-                                        style={{ color: status.color }}
+                                        style={{color: status.color}}
                                     >
-                                        {status.count}
+                                        {count}
                                     </div>
                                     <div
                                         className="text-sm font-semibold uppercase tracking-wide"
-                                        style={{ color: '#E2E8F0' }}
+                                        style={{color: '#E2E8F0'}}
                                     >
                                         {status.label}
                                     </div>
@@ -282,7 +313,9 @@ const DashboardPage = () => {
                     })}
                 </div>
 
-                {/* Pie Chart Section */}
+                {/* --- */}
+
+                {/* Pie Chart Section (Uses consistent colors) */}
                 <div className="flex flex-col items-center justify-center mt-10">
                     <h4 className="text-lg font-semibold text-gray-100 mb-4">
                         Task Status Distribution
@@ -290,24 +323,22 @@ const DashboardPage = () => {
                     <ResponsiveContainer width="100%" height={300}>
                         <PieChart>
                             <Pie
-                                data={[
-                                    { name: 'To Do', value: stats.tasksByStatus.todo },
-                                    { name: 'In Progress', value: stats.tasksByStatus.inProgress },
-                                    { name: 'In Review', value: stats.tasksByStatus.review },
-                                    { name: 'Completed', value: stats.tasksByStatus.completed },
-                                ]}
+                                data={taskStatuses.map(status => ({
+                                    name: status.label,
+                                    value: stats.tasksByStatus[status.key] || 0,
+                                }))}
                                 cx="50%"
                                 cy="50%"
                                 outerRadius={110}
                                 dataKey="value"
-                                label={({ name, percent }) =>
+                                label={({name, percent}) =>
                                     `${name}: ${(percent * 100).toFixed(0)}%`
                                 }
                             >
-                                <Cell fill="#0d5ada" />  {/* blue */}
-                                <Cell fill="#F59E0B" />  {/* amber */}
-                                <Cell fill="#4600e3" />  {/* purple */}
-                                <Cell fill="#10B981" />  {/* emerald */}
+                                {/* Map over the status array for chart cell colors */}
+                                {taskStatuses.map((status) => (
+                                    <Cell key={status.key} fill={status.chartFill}/>
+                                ))}
                             </Pie>
                             <Tooltip
                                 contentStyle={{
